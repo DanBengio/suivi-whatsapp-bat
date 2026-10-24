@@ -1,0 +1,587 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Suivi WhatsApp · Bar à Textile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue:#0087b7; --blue-soft:#e3f2f8; --prune:#87223a; --prune-soft:#f6e6ea; --yellow:#f5be45; --yellow-soft:#fdf3dc;
+  --green:#1f8a4c; --green-soft:#e4f4ea;
+  --ink:#1d2327; --muted:#69737a; --line:#e6e2dc; --bg:#f6f4f0; --card:#ffffff;
+  --radius:14px; --shadow:0 1px 2px rgba(0,0,0,.04),0 4px 14px rgba(0,0,0,.05);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:Raleway,system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.45}
+button{font:inherit;cursor:pointer}
+a{color:inherit}
+.wrap{max-width:980px;margin:0 auto;padding:0 16px 60px}
+
+/* Barre du haut */
+header{position:sticky;top:0;z-index:5;background:rgba(246,244,240,.94);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+.top{max-width:980px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;letter-spacing:.2px}
+.dot{width:12px;height:12px;border-radius:50%;background:var(--blue);box-shadow:16px 0 0 var(--prune),32px 0 0 var(--yellow);margin-right:34px}
+.brand small{font-weight:600;color:var(--muted);font-size:13px}
+.sp{flex:1}
+.meta{font-size:12.5px;color:var(--muted);text-align:right}
+.meta b{color:var(--ink);font-weight:600}
+.iconbtn{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:7px 11px;font-size:13px;font-weight:600;color:var(--ink)}
+.iconbtn.on{background:var(--blue);border-color:var(--blue);color:#fff}
+
+/* Onglets */
+.tabs{max-width:980px;margin:0 auto;padding:0 16px;display:flex;gap:6px;overflow-x:auto}
+.tab{border:0;background:transparent;padding:10px 12px 12px;font-weight:700;color:var(--muted);border-bottom:3px solid transparent;white-space:nowrap}
+.tab.active{color:var(--ink);border-color:var(--blue)}
+.count{display:inline-block;min-width:22px;padding:1px 7px;border-radius:20px;background:var(--line);color:var(--ink);font-size:12px;margin-left:6px;text-align:center}
+.count.hot{background:var(--prune);color:#fff}
+.count.warm{background:var(--yellow);color:var(--ink)}
+
+/* Alerte de connexion */
+.banner{margin:16px 0 0;padding:10px 14px;border-radius:12px;background:var(--yellow-soft);border:1px solid #f1d58f;font-size:13.5px;display:none}
+.banner.show{display:block}
+.banner.demo{background:var(--blue-soft);border-color:#b9dfee}
+
+/* Groupes et cartes */
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:26px 0 10px;display:flex;align-items:center;gap:8px}
+h2 .pill{text-transform:none;letter-spacing:0}
+.list{display:flex;flex-direction:column;gap:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 16px;border-left:5px solid var(--line)}
+.card.late{border-left-color:var(--prune)}
+.card.soon{border-left-color:var(--yellow)}
+.card.ok{border-left-color:var(--blue)}
+.card.relance{border-left-color:var(--yellow)}
+.row{display:flex;align-items:flex-start;gap:12px}
+.avatar{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:800;color:#fff;background:var(--blue);font-size:14px}
+.card.late .avatar{background:var(--prune)}
+.card.relance .avatar{background:#c9921d}
+.who{flex:1;min-width:0}
+.name{font-weight:700;font-size:15.5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.num{color:var(--muted);font-weight:500;font-size:12.5px}
+.msg{margin-top:4px;color:#3a4247;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.msg .who-said{color:var(--muted);font-weight:600}
+.timer{flex:none;text-align:right;font-weight:800;font-size:15px;font-variant-numeric:tabular-nums}
+.timer small{display:block;font-weight:500;color:var(--muted);font-size:11.5px}
+.late .timer{color:var(--prune)}
+.soon .timer{color:#a7770f}
+.pill{display:inline-block;font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:20px;background:var(--blue-soft);color:var(--blue)}
+.pill.bt{background:var(--yellow-soft);color:#8a6410}
+.pill.devis{background:var(--prune-soft);color:var(--prune)}
+.pill.late{background:var(--prune);color:#fff}
+.actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.btn{border:1px solid var(--line);background:#fff;border-radius:9px;padding:6px 11px;font-size:13px;font-weight:600;color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{border-color:#cfc9c0}
+.btn.primary{background:#25a35a;border-color:#25a35a;color:#fff}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--muted)}
+.btn.win{color:var(--green);border-color:#bfe2cc}
+.btn.lose{color:var(--prune);border-color:#e6c3cc}
+.btn[disabled]{opacity:.5;cursor:default}
+
+/* Proposition / infos manquantes */
+.assist{margin-top:12px;border-radius:11px;background:#faf9f6;border:1px dashed #ddd6cb;padding:10px 12px}
+.assist .lbl{font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.assist .soon-txt{color:var(--muted);font-size:13px}
+.assist textarea{width:100%;border:1px solid var(--line);border-radius:9px;padding:8px 10px;font:inherit;font-size:14px;resize:vertical;min-height:64px;background:#fff}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.chip{font-size:12px;padding:3px 9px;border-radius:20px;background:var(--prune-soft);color:var(--prune);font-weight:600}
+
+/* Fil de la conversation */
+.thread{margin-top:12px;border-top:1px solid var(--line);padding-top:10px;display:flex;flex-direction:column;gap:6px;max-height:340px;overflow:auto}
+.bubble{max-width:85%;padding:7px 10px;border-radius:10px;font-size:13.5px;overflow-wrap:anywhere}
+.bubble.in{background:#f0eee9;align-self:flex-start}
+.bubble.out{background:#dcf5e5;align-self:flex-end}
+.bubble time{display:block;font-size:11px;color:var(--muted);margin-top:2px}
+
+/* Vide */
+.empty{background:var(--card);border:1px dashed var(--line);border-radius:var(--radius);padding:28px 16px;text-align:center;color:var(--muted)}
+.empty b{display:block;color:var(--ink);font-size:16px;margin-bottom:4px}
+details.old summary{cursor:pointer;color:var(--muted);font-weight:700;font-size:13px;margin:22px 0 10px;list-style:none}
+details.old summary::-webkit-details-marker{display:none}
+details.old summary::before{content:"▸ "}
+details.old[open] summary::before{content:"▾ "}
+
+/* Récap */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media (max-width:760px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)}
+.kpi .v{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums}
+.kpi .l{font-size:12.5px;color:var(--muted);font-weight:600}
+.kpi .s{font-size:12px;color:var(--muted);margin-top:2px}
+.kpi.good .v{color:var(--green)} .kpi.bad .v{color:var(--prune)}
+.note{font-size:12.5px;color:var(--muted);margin-top:12px}
+
+/* Réglages */
+.settings{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-top:16px}
+.settings label{display:block;font-weight:600;font-size:13.5px;margin:10px 0 4px}
+.settings input[type=text]{width:100%;max-width:320px;border:1px solid var(--line);border-radius:9px;padding:8px 10px;font:inherit}
+
+/* Écran code */
+.login{min-height:100vh;display:grid;place-items:center;padding:16px}
+.login .box{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:28px;max-width:360px;width:100%;text-align:center}
+.login h1{font-size:20px;margin:14px 0 6px}
+.login p{color:var(--muted);font-size:14px;margin:0 0 16px}
+.login input{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 12px;font:inherit;font-size:16px;text-align:center;letter-spacing:.06em}
+.login button{margin-top:10px;width:100%;border:0;border-radius:10px;padding:11px;background:var(--blue);color:#fff;font-weight:700;font-size:15px}
+.login .err{color:var(--prune);font-size:13px;min-height:18px;margin-top:8px}
+
+.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%) translateY(80px);background:var(--ink);color:#fff;padding:9px 16px;border-radius:10px;font-size:13.5px;font-weight:600;transition:transform .25s,opacity .25s;z-index:20;opacity:0;visibility:hidden}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1;visibility:visible}
+.hidden{display:none!important}
+
+@media (max-width:600px){
+  .meta{display:none}
+  .timer{font-size:14px}
+  .card{padding:12px 13px}
+  .avatar{width:34px;height:34px;font-size:13px}
+}
+</style>
+</head>
+<body>
+
+<div id="login" class="login hidden">
+  <div class="box">
+    <span class="dot" style="display:inline-block"></span>
+    <h1>Suivi WhatsApp</h1>
+    <p>Bar à Textile · entrez le code d'accès</p>
+    <form id="loginForm">
+      <input id="codeInput" autocomplete="off" placeholder="bat-xxxx-xxxx" aria-label="Code d'accès">
+      <button type="submit">Entrer</button>
+      <div class="err" id="loginErr"></div>
+    </form>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <header>
+    <div class="top">
+      <div class="brand"><span class="dot"></span>Suivi WhatsApp <small>Bar à Textile</small></div>
+      <div class="sp"></div>
+      <div class="meta" id="meta">—</div>
+      <button class="iconbtn" id="alertBtn" title="Notifications et son">🔔 Activer les alertes</button>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button class="tab active" data-tab="repondre">À répondre<span class="count" id="cRep">0</span></button>
+      <button class="tab" data-tab="relancer">À relancer<span class="count" id="cRel">0</span></button>
+      <button class="tab" data-tab="recap">Récap</button>
+      <button class="tab" data-tab="reglages">Réglages</button>
+    </nav>
+  </header>
+
+  <div class="wrap">
+    <div class="banner demo" id="demoBanner">Mode démonstration : ces conversations sont fictives et les boutons ne modifient rien.</div>
+    <div class="banner" id="healthBanner"></div>
+
+    <section id="tab-repondre"></section>
+    <section id="tab-relancer" class="hidden"></section>
+    <section id="tab-recap" class="hidden"></section>
+    <section id="tab-reglages" class="hidden">
+      <div class="settings">
+        <label for="hoursInput">Heures du rappel « liste en attente » (séparées par des virgules)</label>
+        <input type="text" id="hoursInput" placeholder="10, 12, 15, 17">
+        <label><input type="checkbox" id="alert2h"> Alerte immédiate quand un client attend depuis plus de 2 h</label>
+        <label><input type="checkbox" id="soundOn"> Son avec les alertes</label>
+        <div class="actions"><button class="btn" id="saveSettings">Enregistrer</button><button class="btn" id="testAlert">Tester l'alerte</button><button class="btn ghost" id="logout">Se déconnecter de cette page</button></div>
+        <p class="note">Les réglages sont gardés sur cet ordinateur. Pour que les alertes fonctionnent, laissez cette page ouverte dans un onglet, à côté de WhatsApp Web.</p>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+const API = "https://prfzjiruivbhaqvnrczk.supabase.co/functions/v1/whatsapp-app";
+const LATE_MIN = 120, SOON_MIN = 60, OLD_DAYS = 3, REFRESH_MS = 60000;
+const DEMO = new URLSearchParams(location.search).has("demo");
+
+/* ---------- petites aides ---------- */
+const $ = s => document.querySelector(s);
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem("batwa_"+k); return v === null ? d : JSON.parse(v); }catch{ return d; } },
+  set(k, v){ try{ localStorage.setItem("batwa_"+k, JSON.stringify(v)); }catch{} },
+  del(k){ try{ localStorage.removeItem("batwa_"+k); }catch{} }
+};
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmtNum = n => { const d = String(n||"").replace(/\D/g,""); return d.startsWith("212") && d.length===12 ? "+212 " + d.slice(3,4) + " " + d.slice(4,6) + " " + d.slice(6,8) + " " + d.slice(8,10) + " " + d.slice(10) : (d ? "+"+d : ""); };
+const initials = (name, num) => { const p = (name||"").split(/[^A-Za-zÀ-ÿ]+/).filter(Boolean); if(!p.length) return String(num||"").slice(-2); return (p[0][0] + (p[1]?.[0]||"")).toUpperCase(); };
+const firstName = name => { const n = (name||"").trim().split(/\s+/)[0] || ""; return /^[A-Za-zÀ-ÿ'-]{2,}$/.test(n) ? n.charAt(0).toUpperCase()+n.slice(1).toLowerCase() : ""; };
+const mins = iso => (Date.now() - new Date(iso).getTime()) / 60000;
+function dur(m){
+  if (m < 1) return "à l'instant";
+  if (m < 60) return Math.floor(m) + " min";
+  if (m < 60*24){ const h = Math.floor(m/60), r = Math.floor(m%60); return h + " h" + (r ? " " + String(r).padStart(2,"0") : ""); }
+  const d = Math.floor(m/1440); return d + (d>1 ? " jours" : " jour");
+}
+const clock = iso => new Date(iso).toLocaleString("fr-FR",{weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
+const hm = iso => new Date(iso).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"});
+function toast(t){ const el = $("#toast"); el.textContent = t; el.classList.add("show"); clearTimeout(toast._t); toast._t = setTimeout(()=>el.classList.remove("show"), 2200); }
+const waLink = num => "https://web.whatsapp.com/send?phone=" + String(num).replace(/\D/g,"");
+const isMobile = matchMedia("(max-width:700px)").matches;
+const openLink = num => isMobile ? "https://wa.me/" + String(num).replace(/\D/g,"") : waLink(num);
+
+/* ---------- données ---------- */
+let data = null, code = store.get("code", ""), openThreads = new Set(), activeTab = store.get("tab","repondre");
+
+async function api(action, extra = {}){
+  if (DEMO) return demoApi(action, extra);
+  const r = await fetch(API, { method:"POST", headers:{ "content-type":"application/json", "x-code": code }, body: JSON.stringify({ action, ...extra }) });
+  if (r.status === 401) { throw Object.assign(new Error("code"), { code:401 }); }
+  if (!r.ok) throw new Error("Erreur " + r.status);
+  return r.json();
+}
+
+async function refresh(){
+  try{
+    data = await api("load");
+    render();
+    checkAlerts();
+  }catch(e){
+    if (e.code === 401){ store.del("code"); showLogin("Code incorrect."); return; }
+    $("#healthBanner").textContent = "Impossible de charger la liste (" + e.message + "). Nouvelle tentative dans 1 minute.";
+    $("#healthBanner").classList.add("show");
+  }
+}
+
+/* ---------- rendu ---------- */
+function relanceText(c){
+  const p = firstName(c.name);
+  return `Bonjour${p ? " " + p : ""}, je reviens vers vous au sujet de notre proposition. Avez-vous pu la regarder ? Je peux ajuster les quantités ou le marquage si besoin. Bonne journée !`;
+}
+
+function assistBlock(c){
+  const parts = [];
+  if (c.missing_info && c.missing_info.length){
+    parts.push(`<div class="assist"><div class="lbl">Il manque pour faire le devis</div><div class="chips">${c.missing_info.map(x=>`<span class="chip">${esc(x)}</span>`).join("")}</div></div>`);
+  }
+  if (c.suggestion){
+    parts.push(`<div class="assist"><div class="lbl">Proposition de réponse <span class="pill">Claude</span></div><textarea data-sugg="${esc(c.wa_id)}">${esc(c.suggestion)}</textarea><div class="actions"><button class="btn" data-copy="${esc(c.wa_id)}">Copier</button></div></div>`);
+  }
+  return parts.join("");
+}
+
+function pendingCard(c){
+  const m = mins(c.last_in_at);
+  const cls = m >= LATE_MIN ? "late" : (m >= SOON_MIN ? "soon" : "ok");
+  const num = fmtNum(c.wa_id);
+  return `<article class="card ${cls}" data-id="${esc(c.wa_id)}">
+    <div class="row">
+      <div class="avatar">${esc(initials(c.name, c.wa_id))}</div>
+      <div class="who">
+        <div class="name">${esc(c.name || num)} ${c.name ? `<span class="num">${esc(num)}</span>` : ""}
+          ${c.ref_bt ? `<span class="pill bt">${esc(c.ref_bt)}</span>` : ""}
+          ${c.status === "devis_envoye" ? `<span class="pill devis">Devis envoyé</span>` : ""}
+        </div>
+        <div class="msg">${esc(c.last_text || "")}</div>
+      </div>
+      <div class="timer" data-since="${esc(c.last_in_at)}">${dur(m)}<small>reçu ${esc(hm(c.last_in_at))}</small></div>
+    </div>
+    ${assistBlock(c)}
+    <div class="actions">
+      <a class="btn primary" href="${openLink(c.wa_id)}" target="whatsapp" rel="noopener">Ouvrir dans WhatsApp</a>
+      <button class="btn" data-thread="${esc(c.wa_id)}">${openThreads.has(c.wa_id) ? "Masquer" : "Voir"} la conversation</button>
+      ${c.status !== "devis_envoye" ? `<button class="btn" data-status="devis_envoye" data-id2="${esc(c.wa_id)}">Devis envoyé</button>` : ""}
+      <button class="btn ghost" data-dismiss="${esc(c.wa_id)}" title="Message du type « merci », « ok »">Pas besoin de répondre</button>
+      <button class="btn ghost" data-status="perso" data-id2="${esc(c.wa_id)}" title="Ne plus suivre cette conversation">Perso</button>
+    </div>
+    <div class="thread ${openThreads.has(c.wa_id) ? "" : "hidden"}" id="th-${esc(c.wa_id)}"></div>
+  </article>`;
+}
+
+function relanceCard(c){
+  const m = mins(c.last_out_at);
+  const num = fmtNum(c.wa_id);
+  return `<article class="card relance" data-id="${esc(c.wa_id)}">
+    <div class="row">
+      <div class="avatar">${esc(initials(c.name, c.wa_id))}</div>
+      <div class="who">
+        <div class="name">${esc(c.name || num)} ${c.name ? `<span class="num">${esc(num)}</span>` : ""}
+          ${c.ref_bt ? `<span class="pill bt">${esc(c.ref_bt)}</span>` : ""}
+          ${c.status === "devis_envoye" ? `<span class="pill devis">Devis envoyé</span>` : ""}
+        </div>
+        <div class="msg"><span class="who-said">Notre dernier message :</span> ${esc(c.last_text || "")}</div>
+      </div>
+      <div class="timer">${dur(m)}<small>sans réponse</small></div>
+    </div>
+    <div class="assist"><div class="lbl">Message de relance proposé</div>
+      <textarea data-rel="${esc(c.wa_id)}">${esc(relanceText(c))}</textarea>
+      <div class="actions"><button class="btn" data-copyrel="${esc(c.wa_id)}">Copier</button></div>
+    </div>
+    <div class="actions">
+      <a class="btn primary" href="${openLink(c.wa_id)}" target="whatsapp" rel="noopener">Ouvrir dans WhatsApp</a>
+      <button class="btn" data-thread="${esc(c.wa_id)}">${openThreads.has(c.wa_id) ? "Masquer" : "Voir"} la conversation</button>
+      <button class="btn" data-snooze="${esc(c.wa_id)}">Plus tard (3 jours)</button>
+      <button class="btn win" data-status="gagne" data-id2="${esc(c.wa_id)}">Gagné</button>
+      <button class="btn lose" data-status="perdu" data-id2="${esc(c.wa_id)}">Perdu</button>
+    </div>
+    <div class="thread ${openThreads.has(c.wa_id) ? "" : "hidden"}" id="th-${esc(c.wa_id)}"></div>
+  </article>`;
+}
+
+function renderRepondre(){
+  const list = data.pending || [];
+  const late = [], fresh = [], old = [];
+  for (const c of list){ const m = mins(c.last_in_at); if (m >= OLD_DAYS*1440) old.push(c); else if (m >= LATE_MIN) late.push(c); else fresh.push(c); }
+  let h = "";
+  if (!late.length && !fresh.length){
+    h += `<h2>À répondre</h2><div class="empty"><b>Tout le monde a eu sa réponse</b>Aucun client n'attend en ce moment.</div>`;
+  }
+  if ((late.length || fresh.length) && !list.some(c => c.suggestion)) h += `<div class="banner show" style="background:#faf9f6;border:1px dashed #ddd6cb">Bientôt : sous chaque message, Claude préparera une réponse à copier et la liste de ce qu'il manque pour faire le devis.</div>`;
+  if (late.length) h += `<h2><span class="pill late">${late.length}</span> Attendent depuis plus de 2 h</h2><div class="list">${late.map(pendingCard).join("")}</div>`;
+  if (fresh.length) h += `<h2>Moins de 2 h</h2><div class="list">${fresh.map(pendingCard).join("")}</div>`;
+  if (old.length) h += `<details class="old"><summary>${old.length} conversation${old.length>1?"s":""} sans réponse depuis plus de ${OLD_DAYS} jours</summary><div class="list">${old.map(pendingCard).join("")}</div></details>`;
+  $("#tab-repondre").innerHTML = h;
+  const active = late.length + fresh.length;
+  $("#cRep").textContent = active;
+  $("#cRep").className = "count" + (late.length ? " hot" : (active ? " warm" : ""));
+}
+
+function renderRelancer(){
+  const list = data.relances || [];
+  let h = `<h2>Devis sans réponse depuis plus de 2 jours</h2>`;
+  h += list.length ? `<div class="list">${list.map(relanceCard).join("")}</div>`
+    : `<div class="empty"><b>Aucune relance à faire</b>Les devis restés sans réponse depuis plus de 2 jours apparaîtront ici chaque matin.</div>`;
+  h += `<p class="note">Une conversation apparaît ici quand nous avons écrit en dernier, avec un devis (statut « Devis envoyé », document envoyé, ou prix dans le message), et que le client ne répond plus depuis 2 jours. Dès qu'un message de relance est envoyé, elle disparaît pour 2 jours.</p>`;
+  $("#tab-relancer").innerHTML = h;
+  $("#cRel").textContent = list.length;
+  $("#cRel").className = "count" + (list.length ? " warm" : "");
+}
+
+function kpi(v, l, s, cls=""){ return `<div class="kpi ${cls}"><div class="v">${v}</div><div class="l">${l}</div>${s?`<div class="s">${s}</div>`:""}</div>`; }
+function pct(a,b){ return b ? Math.round(100*a/b) + " %" : "—"; }
+function block(title, s){
+  const delay = s.delai_median_min == null ? "—" : dur(s.delai_median_min);
+  const rate2h = s.demandes ? s.repondues_2h / s.demandes : null;
+  return `<h2>${title}</h2><div class="kpis">
+    ${kpi(s.demandes, "Demandes reçues", `${s.nouveaux_contacts} nouveau${s.nouveaux_contacts>1?"x":""} contact${s.nouveaux_contacts>1?"s":""}`)}
+    ${kpi(pct(s.repondues_2h, s.demandes), "Répondues en moins de 2 h", `${s.repondues_2h} sur ${s.demandes}`, rate2h==null?"":(rate2h>=.8?"good":(rate2h<.5?"bad":"")))}
+    ${kpi(delay, "Délai de réponse médian", "nuits comprises")}
+    ${kpi(`${s.gagnes} / ${s.perdus}`, "Ventes gagnées / perdues", "marquées dans cette page")}
+  </div>`;
+}
+function nowBlock(s){
+  return `<h2>Maintenant</h2><div class="kpis">
+    ${kpi(s.en_attente, "Clients en attente", "dernier mois", s.en_attente?"":"good")}
+    ${kpi(s.en_attente_2h, "Attendent depuis plus de 2 h", "", s.en_attente_2h?"bad":"good")}
+    ${kpi(s.a_relancer, "Devis à relancer", "sans réponse depuis 2 jours")}
+    ${kpi(s.devis_en_cours, "Devis en cours", "marqués « devis envoyé »")}
+  </div>`;
+}
+function renderRecap(){
+  const st = data.stats || {};
+  let h = "";
+  if (st.today) h += nowBlock(st.today);
+  if (st.today) h += block("Aujourd'hui (24 dernières heures)", st.today);
+  if (st.week) h += block("7 derniers jours", st.week);
+  h += `<p class="note">Bientôt : ce récap vous sera envoyé chaque soir sur WhatsApp.</p>`;
+  $("#tab-recap").innerHTML = h;
+}
+
+function renderMeta(){
+  const last = data.last_event_at;
+  $("#meta").innerHTML = `Mis à jour à <b>${hm(data.now)}</b>` + (last ? `<br>Dernier message reçu ${mins(last) < 1 ? "à l'instant" : "il y a " + esc(dur(mins(last)))}` : "");
+  const hb = $("#healthBanner");
+  const h = new Date().getHours(), wd = new Date().getDay();
+  if (!DEMO && last && mins(last) > 24*60 && wd >= 1 && wd <= 6 && h >= 11){
+    hb.textContent = "Aucun message reçu depuis plus de 24 h. Si c'est inhabituel, la connexion WhatsApp est peut-être coupée (téléphone non ouvert depuis 14 jours ?). Prévenez Dan.";
+    hb.classList.add("show");
+  } else if (!DEMO && !last){
+    hb.textContent = "Aucun message reçu pour l'instant : le numéro n'est peut-être pas encore branché.";
+    hb.classList.add("show");
+  } else hb.classList.remove("show");
+}
+
+function render(){
+  if (!data) return;
+  renderMeta(); renderRepondre(); renderRelancer(); renderRecap();
+  for (const id of openThreads) loadThread(id, false);
+}
+
+async function loadThread(id, toggle = true){
+  const el = document.getElementById("th-" + id);
+  if (!el) return;
+  if (toggle){
+    if (openThreads.has(id)){ openThreads.delete(id); el.classList.add("hidden"); render(); return; }
+    openThreads.add(id); el.classList.remove("hidden");
+  }
+  el.innerHTML = `<div class="note">Chargement…</div>`;
+  try{
+    const msgs = (await api("messages", { wa_id:id })).slice().reverse();
+    el.innerHTML = msgs.map(m => `<div class="bubble ${m.direction}">${esc(m.body)}<time>${esc(clock(m.ts))}</time></div>`).join("") || `<div class="note">Aucun message.</div>`;
+    el.scrollTop = el.scrollHeight;
+    if (toggle) render();
+  }catch(e){ el.innerHTML = `<div class="note">Impossible de charger la conversation.</div>`; }
+}
+
+/* ---------- actions ---------- */
+document.addEventListener("click", async ev => {
+  const b = ev.target.closest("button");
+  if (!b) return;
+  if (b.dataset.tab){ setTab(b.dataset.tab); return; }
+  if (b.dataset.thread){ loadThread(b.dataset.thread); return; }
+  if (b.dataset.copy || b.dataset.copyrel){
+    const ta = b.dataset.copy ? document.querySelector(`textarea[data-sugg="${CSS.escape(b.dataset.copy)}"]`) : document.querySelector(`textarea[data-rel="${CSS.escape(b.dataset.copyrel)}"]`);
+    try{ await navigator.clipboard.writeText(ta.value); toast("Copié. Collez-le dans WhatsApp."); }catch{ ta.select(); document.execCommand("copy"); toast("Copié."); }
+    return;
+  }
+  let action = null, extra = {}, msg = "";
+  if (b.dataset.dismiss){ action = "dismiss"; extra = { wa_id:b.dataset.dismiss }; msg = "Retiré de la liste."; }
+  else if (b.dataset.snooze){ action = "snooze"; extra = { wa_id:b.dataset.snooze, days:3 }; msg = "On vous la remontre dans 3 jours."; }
+  else if (b.dataset.status){ action = "status"; extra = { wa_id:b.dataset.id2, status:b.dataset.status }; msg = { devis_envoye:"Noté : devis envoyé.", gagne:"Bravo ! Marqué gagné.", perdu:"Marqué perdu.", perso:"Conversation perso : elle ne sera plus suivie." }[b.dataset.status]; }
+  if (!action) return;
+  b.disabled = true;
+  try{ await api(action, extra); toast(msg); await refresh(); }
+  catch(e){ toast("Erreur, réessayez."); b.disabled = false; }
+});
+
+function setTab(t){
+  activeTab = t; store.set("tab", t);
+  document.querySelectorAll(".tab").forEach(x => x.classList.toggle("active", x.dataset.tab === t));
+  ["repondre","relancer","recap","reglages"].forEach(x => $("#tab-"+x).classList.toggle("hidden", x !== t));
+}
+
+/* ---------- alertes ---------- */
+let audioCtx = null;
+const settings = () => ({ hours: store.get("hours", [10,12,15,17]), alert2h: store.get("alert2h", true), sound: store.get("sound", true) });
+function beep(){
+  if (!settings().sound) return;
+  try{
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const t = audioCtx.currentTime;
+    [0, .18].forEach((d,i) => { const o = audioCtx.createOscillator(), g = audioCtx.createGain(); o.frequency.value = i ? 880 : 660; g.gain.setValueAtTime(.0001, t+d); g.gain.exponentialRampToValueAtTime(.25, t+d+.02); g.gain.exponentialRampToValueAtTime(.0001, t+d+.16); o.connect(g).connect(audioCtx.destination); o.start(t+d); o.stop(t+d+.18); });
+  }catch{}
+}
+function notify(title, body){
+  beep();
+  if ("Notification" in window && Notification.permission === "granted"){
+    const n = new Notification(title, { body, tag:"batwa", renotify:true, requireInteraction:true });
+    n.onclick = () => { window.focus(); setTab("repondre"); n.close(); };
+  }
+  document.title = "(" + (data?.pending?.length || "!") + ") Suivi WhatsApp · Bar à Textile";
+}
+function checkAlerts(){
+  if (!data) return;
+  const s = settings(), now = new Date();
+  const active = (data.pending || []).filter(c => mins(c.last_in_at) < OLD_DAYS*1440);
+  const late = active.filter(c => mins(c.last_in_at) >= LATE_MIN);
+  document.title = (active.length ? "(" + active.length + ") " : "") + "Suivi WhatsApp · Bar à Textile";
+
+  // Alerte immédiate : un client vient de dépasser 2 h
+  if (s.alert2h){
+    const seen = new Set(store.get("seen2h", []));
+    const fresh = late.filter(c => !seen.has(c.wa_id + "|" + c.last_in_at));
+    if (fresh.length){
+      notify(`${fresh.length} client${fresh.length>1?"s attendent":" attend"} depuis plus de 2 h`, fresh.map(c => c.name || fmtNum(c.wa_id)).slice(0,4).join(", "));
+      late.forEach(c => seen.add(c.wa_id + "|" + c.last_in_at));
+      store.set("seen2h", [...seen].slice(-300));
+    }
+  }
+  // Rappel aux heures fixes
+  const key = now.toDateString() + "-" + now.getHours();
+  if (s.hours.includes(now.getHours()) && now.getMinutes() < 15 && store.get("lastHourly","") !== key){
+    store.set("lastHourly", key);
+    if (active.length) notify(`${active.length} conversation${active.length>1?"s":""} en attente de réponse`, active.slice(0,5).map(c => (c.name || fmtNum(c.wa_id)) + " · " + dur(mins(c.last_in_at))).join("\n"));
+    const rel = (data.relances || []).length;
+    if (now.getHours() === Math.min(...s.hours) && rel) setTimeout(() => notify(`${rel} devis à relancer aujourd'hui`, "Ouvrez l'onglet « À relancer »."), 4000);
+  }
+}
+function updateAlertBtn(){
+  const on = "Notification" in window && Notification.permission === "granted";
+  $("#alertBtn").classList.toggle("on", on);
+  $("#alertBtn").textContent = on ? "🔔 Alertes activées" : "🔔 Activer les alertes";
+}
+$("#alertBtn").addEventListener("click", async () => {
+  try{ audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)(); await audioCtx.resume(); }catch{}
+  if ("Notification" in window && Notification.permission !== "granted") await Notification.requestPermission();
+  updateAlertBtn();
+  if (Notification.permission === "granted"){ toast("Alertes activées."); beep(); }
+  else toast("Les notifications sont bloquées par le navigateur.");
+});
+
+/* ---------- réglages ---------- */
+function fillSettings(){
+  const s = settings();
+  $("#hoursInput").value = s.hours.join(", ");
+  $("#alert2h").checked = s.alert2h; $("#soundOn").checked = s.sound;
+}
+$("#saveSettings").addEventListener("click", () => {
+  const hrs = $("#hoursInput").value.split(/[,; ]+/).map(Number).filter(n => Number.isInteger(n) && n >= 0 && n <= 23);
+  store.set("hours", hrs.length ? [...new Set(hrs)].sort((a,b)=>a-b) : [10,12,15,17]);
+  store.set("alert2h", $("#alert2h").checked); store.set("sound", $("#soundOn").checked);
+  fillSettings(); toast("Réglages enregistrés.");
+});
+$("#testAlert").addEventListener("click", () => notify("Test d'alerte", "Les alertes fonctionnent sur cet ordinateur."));
+$("#logout").addEventListener("click", () => { store.del("code"); location.reload(); });
+
+/* ---------- connexion ---------- */
+function showLogin(err = ""){
+  $("#app").classList.add("hidden"); $("#login").classList.remove("hidden");
+  $("#loginErr").textContent = err; $("#codeInput").focus();
+}
+$("#loginForm").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  code = $("#codeInput").value.trim();
+  try{ data = await api("load"); store.set("code", code); start(); }
+  catch(e){ $("#loginErr").textContent = e.code === 401 ? "Code incorrect." : "Connexion impossible, réessayez."; }
+});
+
+function start(){
+  $("#login").classList.add("hidden"); $("#app").classList.remove("hidden");
+  $("#demoBanner").classList.toggle("show", DEMO);
+  fillSettings(); updateAlertBtn(); setTab(activeTab);
+  if (data){ render(); checkAlerts(); } else refresh();
+  clearInterval(start._r); start._r = setInterval(refresh, REFRESH_MS);
+  clearInterval(start._t); start._t = setInterval(() => {
+    document.querySelectorAll(".timer[data-since]").forEach(el => { el.firstChild.textContent = dur(mins(el.dataset.since)); });
+  }, 30000);
+}
+
+/* ---------- démonstration ---------- */
+function demoData(){
+  const ago = m => new Date(Date.now() - m*60000).toISOString();
+  return {
+    now: new Date().toISOString(), last_event_at: ago(4),
+    pending: [
+      { wa_id:"212661000111", name:"Karim — Atlas Sport", last_in_at:ago(205), last_text:"Bonjour, c'est pour 120 maillots floqués pour notre tournoi du 15 novembre. Vous pouvez faire ?", ref_bt:"BT-7K2M9", status:"en_cours", suggestion:"Bonjour Karim, oui c'est faisable pour le 15 novembre. Pour vous faire le devis, pouvez-vous me préciser la répartition des tailles, la couleur des maillots et m'envoyer votre logo (PDF ou PNG) ? Je vous envoie le prix dans la foulée.", missing_info:["Tailles","Couleur","Logo"] },
+      { wa_id:"212700223344", name:"Salma Bennani", last_in_at:ago(140), last_text:"Et pour la broderie sur la poitrine c'est combien en plus ?", ref_bt:null, status:"devis_envoye", suggestion:null, missing_info:null },
+      { wa_id:"212655887766", name:"", last_in_at:ago(38), last_text:"[image] Comme ce modèle mais en bleu marine", ref_bt:"BT-Q4X8P", status:"en_cours", suggestion:null, missing_info:null },
+      { wa_id:"212612345678", name:"Youssef (OCP)", last_in_at:ago(6), last_text:"Bonjour, je souhaite un devis pour 300 tote bags avec impression 1 couleur.", ref_bt:null, status:"en_cours", suggestion:null, missing_info:null },
+      { wa_id:"212698765432", name:"Hôtel Riad Salam", last_in_at:ago(60*24*9), last_text:"Ok merci, je reviens vers vous", ref_bt:null, status:"en_cours", suggestion:null, missing_info:null }
+    ],
+    relances: [
+      { wa_id:"212644556677", name:"Nadia El Amrani", last_out_at:ago(60*24*3+120), last_text:"[document] Devis BAT-2026-118 — 200 polos brodés", ref_bt:"BT-H3N7D", status:"devis_envoye" },
+      { wa_id:"212633221100", name:"Mehdi Agence Pixel", last_out_at:ago(60*24*5), last_text:"Pour 80 hoodies avec impression dos + cœur ce serait 145 dh pièce HT.", ref_bt:null, status:"en_cours" }
+    ],
+    stats: {
+      today: { jours:1, demandes:14, nouveaux_contacts:5, repondues:12, repondues_2h:9, delai_median_min:34, en_attente:4, en_attente_2h:2, a_relancer:2, devis_en_cours:6, gagnes:1, perdus:0 },
+      week: { jours:7, demandes:83, nouveaux_contacts:27, repondues:79, repondues_2h:58, delai_median_min:52, en_attente:4, en_attente_2h:2, a_relancer:2, devis_en_cours:6, gagnes:5, perdus:2 }
+    }
+  };
+}
+let demo = null;
+async function demoApi(action, extra){
+  demo = demo || demoData();
+  if (action === "load") return { ...demo, now: new Date().toISOString() };
+  if (action === "messages"){
+    const c = [...demo.pending, ...demo.relances].find(x => x.wa_id === extra.wa_id) || {};
+    const t = c.last_in_at || c.last_out_at || new Date().toISOString();
+    const b = new Date(t).getTime();
+    return [
+      { direction: c.last_in_at ? "in" : "out", ts: t, body: c.last_text },
+      { direction:"out", ts:new Date(b-3600e3).toISOString(), body:"Bonjour ! Bien sûr, dites-moi tout : quantité, modèle et date souhaitée ?" },
+      { direction:"in", ts:new Date(b-4000e3).toISOString(), body:"Bonjour, je vous contacte depuis votre site." }
+    ];
+  }
+  return { ok:true };
+}
+
+/* ---------- démarrage ---------- */
+if (DEMO || code) start(); else showLogin();
+})();
+</script>
+</body>
+</html>
