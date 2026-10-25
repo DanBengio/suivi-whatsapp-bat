@@ -130,6 +130,22 @@ details.old[open] summary::before{content:"▾ "}
 
 .toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%) translateY(80px);background:var(--ink);color:#fff;padding:9px 16px;border-radius:10px;font-size:13.5px;font-weight:600;transition:transform .25s,opacity .25s;z-index:20;opacity:0;visibility:hidden}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1;visibility:visible}
+/* Équipe B2B / B2C */
+.pill.owner{background:#efe7f7;color:#5b3a86}
+.btn.b2c{color:#5b3a86;border-color:#d9cdea}
+.b2cbar{margin:18px 0 0;padding:10px 14px;border-radius:12px;background:#f4eff9;border:1px solid #e1d6ee;font-size:13.5px}
+.b2cbar.hot{background:var(--prune-soft);border-color:#e6c3cc}
+.banner.soft{background:#faf9f6;border:1px dashed #ddd6cb}
+.dismiss{margin-top:10px;border-radius:11px;background:#faf9f6;border:1px solid var(--line);padding:10px 12px}
+.dismiss .lbl{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.dismiss .actions{margin-top:6px}
+.warn{background:var(--yellow-soft);border:1px solid #f1d58f;border-radius:9px;padding:7px 10px;font-size:13px;margin-bottom:8px}
+.card.mini{padding:10px 14px}
+.tablewrap{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+table.people{width:100%;border-collapse:collapse;font-size:13.5px;font-variant-numeric:tabular-nums}
+table.people th{font-size:12px;color:var(--muted);font-weight:700;text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+table.people td{padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+table.people tr:last-child td{border-bottom:0}
 .hidden{display:none!important}
 
 @media (max-width:600px){
@@ -172,7 +188,7 @@ details.old[open] summary::before{content:"▾ "}
   </header>
 
   <div class="wrap">
-    <div class="banner demo" id="demoBanner">Mode démonstration : ces conversations sont fictives et les boutons ne modifient rien.</div>
+    <div class="banner demo" id="demoBanner">Mode démonstration : conversations fictives, rien n’est enregistré. Vue de Lamyaa ; ajoutez <b>&amp;as=nourredine</b> à l’adresse pour la vue B2C.</div>
     <div class="banner" id="healthBanner"></div>
 
     <section id="tab-repondre"></section>
@@ -197,7 +213,11 @@ details.old[open] summary::before{content:"▾ "}
 (() => {
 const API = "https://prfzjiruivbhaqvnrczk.supabase.co/functions/v1/whatsapp-app";
 const LATE_MIN = 120, SOON_MIN = 60, OLD_DAYS = 3, REFRESH_MS = 60000;
-const DEMO = new URLSearchParams(location.search).has("demo");
+const QS = new URLSearchParams(location.search);
+const DEMO = QS.has("demo");
+const PEOPLE = { lamyaa: "Lamyaa", nourredine: "Nourredine" };
+const REASONS = { merci_ok: "Merci / ok", telephone: "Réglé par téléphone", spam: "Spam", perso: "Perso", autre: "Autre" };
+const QUESTION_RE = /\?|combien|prix|tarif|devis|d[ée]lai|dispo|possible|vous avez|est-ce|svp|s'il vous|quand|bch?7al|ch7al|wach|كم|ثمن|بشحال|واش/i;
 
 /* ---------- petites aides ---------- */
 const $ = s => document.querySelector(s);
@@ -207,7 +227,8 @@ const store = {
   del(k){ try{ localStorage.removeItem("batwa_"+k); }catch{} }
 };
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const fmtNum = n => { const d = String(n||"").replace(/\D/g,""); return d.startsWith("212") && d.length===12 ? "+212 " + d.slice(3,4) + " " + d.slice(4,6) + " " + d.slice(6,8) + " " + d.slice(8,10) + " " + d.slice(10) : (d ? "+"+d : ""); };
+const digits = n => String(n||"").replace(/\D/g,"");
+const fmtNum = n => { const d = digits(n); return d.startsWith("212") && d.length===12 ? "+212 " + d.slice(3,4) + " " + d.slice(4,6) + " " + d.slice(6,8) + " " + d.slice(8,10) + " " + d.slice(10) : (d ? "+"+d : ""); };
 const initials = (name, num) => { const p = (name||"").split(/[^A-Za-zÀ-ÿ]+/).filter(Boolean); if(!p.length) return String(num||"").slice(-2); return (p[0][0] + (p[1]?.[0]||"")).toUpperCase(); };
 const firstName = name => { const n = (name||"").trim().split(/\s+/)[0] || ""; return /^[A-Za-zÀ-ÿ'-]{2,}$/.test(n) ? n.charAt(0).toUpperCase()+n.slice(1).toLowerCase() : ""; };
 const mins = iso => (Date.now() - new Date(iso).getTime()) / 60000;
@@ -219,13 +240,15 @@ function dur(m){
 }
 const clock = iso => new Date(iso).toLocaleString("fr-FR",{weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
 const hm = iso => new Date(iso).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"});
-function toast(t){ const el = $("#toast"); el.textContent = t; el.classList.add("show"); clearTimeout(toast._t); toast._t = setTimeout(()=>el.classList.remove("show"), 2200); }
-const waLink = num => "https://web.whatsapp.com/send?phone=" + String(num).replace(/\D/g,"");
+function toast(t, ms = 2400){ const el = $("#toast"); el.textContent = t; el.classList.add("show"); clearTimeout(toast._t); toast._t = setTimeout(()=>el.classList.remove("show"), ms); }
 const isMobile = matchMedia("(max-width:700px)").matches;
-const openLink = num => isMobile ? "https://wa.me/" + String(num).replace(/\D/g,"") : waLink(num);
+const openLink = num => isMobile ? "https://wa.me/" + digits(num) : "https://web.whatsapp.com/send?phone=" + digits(num);
+const looksLikeQuestion = t => QUESTION_RE.test(t || "");
 
 /* ---------- données ---------- */
-let data = null, code = store.get("code", ""), openThreads = new Set(), activeTab = store.get("tab","repondre");
+let data = null, code = store.get("code", ""), openThreads = new Set(), activeTab = store.get("tab","repondre"), dismissOpen = null;
+const me = () => data?.me || { user:"", name:"", role:"" };
+const isB2C = () => me().role === "b2c";
 
 async function api(action, extra = {}){
   if (DEMO) return demoApi(action, extra);
@@ -253,6 +276,23 @@ function relanceText(c){
   return `Bonjour${p ? " " + p : ""}, je reviens vers vous au sujet de notre proposition. Avez-vous pu la regarder ? Je peux ajuster les quantités ou le marquage si besoin. Bonne journée !`;
 }
 
+function ownerPill(c){
+  if (isB2C() || !c.assigned_to || c.assigned_to === "lamyaa") return "";
+  return `<span class="pill owner">B2C · ${esc(PEOPLE[c.assigned_to] || c.assigned_to)}</span>`;
+}
+
+function assignBtn(c){
+  if (isB2C()) return "";
+  return c.assigned_to === "nourredine"
+    ? `<button class="btn" data-assign="lamyaa" data-id2="${esc(c.wa_id)}" title="Remettre cette conversation chez Lamyaa">Reprendre</button>`
+    : `<button class="btn b2c" data-assign="nourredine" data-id2="${esc(c.wa_id)}" title="Confier cette conversation à Nourredine">→ B2C (Nourredine)</button>`;
+}
+
+function contactButtons(c){
+  return `<button class="btn primary" data-copynum="${esc(c.wa_id)}" title="Copie le numéro : dans WhatsApp Web, Ctrl+Alt+/ puis Ctrl+V">Copier le n°</button>
+      <a class="btn ghost" href="${openLink(c.wa_id)}" target="_blank" rel="noopener" title="Ouvre un nouvel onglet WhatsApp">${isMobile ? "Ouvrir WhatsApp" : "Nouvel onglet"}</a>`;
+}
+
 function assistBlock(c){
   const parts = [];
   if (c.missing_info && c.missing_info.length){
@@ -264,6 +304,15 @@ function assistBlock(c){
   return parts.join("");
 }
 
+function dismissBlock(c){
+  if (dismissOpen !== c.wa_id) return "";
+  const warn = looksLikeQuestion(c.last_text)
+    ? `<div class="warn">Attention : le client semble poser une question. Si c'est le cas, il attend une réponse.</div>` : "";
+  return `<div class="dismiss">${warn}<div class="lbl">Pourquoi pas de réponse ?</div><div class="actions">
+    ${Object.entries(REASONS).map(([k,v]) => `<button class="btn" data-reason="${k}" data-id2="${esc(c.wa_id)}">${v}</button>`).join("")}
+    <button class="btn ghost" data-cancel="1">Annuler</button></div></div>`;
+}
+
 function pendingCard(c){
   const m = mins(c.last_in_at);
   const cls = m >= LATE_MIN ? "late" : (m >= SOON_MIN ? "soon" : "ok");
@@ -273,6 +322,7 @@ function pendingCard(c){
       <div class="avatar">${esc(initials(c.name, c.wa_id))}</div>
       <div class="who">
         <div class="name">${esc(c.name || num)} ${c.name ? `<span class="num">${esc(num)}</span>` : ""}
+          ${ownerPill(c)}
           ${c.ref_bt ? `<span class="pill bt">${esc(c.ref_bt)}</span>` : ""}
           ${c.status === "devis_envoye" ? `<span class="pill devis">Devis envoyé</span>` : ""}
         </div>
@@ -282,12 +332,13 @@ function pendingCard(c){
     </div>
     ${assistBlock(c)}
     <div class="actions">
-      <a class="btn primary" href="${openLink(c.wa_id)}" target="whatsapp" rel="noopener">Ouvrir dans WhatsApp</a>
+      ${contactButtons(c)}
       <button class="btn" data-thread="${esc(c.wa_id)}">${openThreads.has(c.wa_id) ? "Masquer" : "Voir"} la conversation</button>
       ${c.status !== "devis_envoye" ? `<button class="btn" data-status="devis_envoye" data-id2="${esc(c.wa_id)}">Devis envoyé</button>` : ""}
-      <button class="btn ghost" data-dismiss="${esc(c.wa_id)}" title="Message du type « merci », « ok »">Pas besoin de répondre</button>
-      <button class="btn ghost" data-status="perso" data-id2="${esc(c.wa_id)}" title="Ne plus suivre cette conversation">Perso</button>
+      ${assignBtn(c)}
+      <button class="btn ghost" data-dismiss="${esc(c.wa_id)}" title="Retirer de la liste, avec un motif">Pas besoin de répondre</button>
     </div>
+    ${dismissBlock(c)}
     <div class="thread ${openThreads.has(c.wa_id) ? "" : "hidden"}" id="th-${esc(c.wa_id)}"></div>
   </article>`;
 }
@@ -300,6 +351,7 @@ function relanceCard(c){
       <div class="avatar">${esc(initials(c.name, c.wa_id))}</div>
       <div class="who">
         <div class="name">${esc(c.name || num)} ${c.name ? `<span class="num">${esc(num)}</span>` : ""}
+          ${ownerPill(c)}
           ${c.ref_bt ? `<span class="pill bt">${esc(c.ref_bt)}</span>` : ""}
           ${c.status === "devis_envoye" ? `<span class="pill devis">Devis envoyé</span>` : ""}
         </div>
@@ -309,35 +361,59 @@ function relanceCard(c){
     </div>
     <div class="assist"><div class="lbl">Message de relance proposé</div>
       <textarea data-rel="${esc(c.wa_id)}">${esc(relanceText(c))}</textarea>
-      <div class="actions"><button class="btn" data-copyrel="${esc(c.wa_id)}">Copier</button></div>
+      <div class="actions"><button class="btn" data-copyrel="${esc(c.wa_id)}">Copier le message</button></div>
     </div>
     <div class="actions">
-      <a class="btn primary" href="${openLink(c.wa_id)}" target="whatsapp" rel="noopener">Ouvrir dans WhatsApp</a>
+      ${contactButtons(c)}
       <button class="btn" data-thread="${esc(c.wa_id)}">${openThreads.has(c.wa_id) ? "Masquer" : "Voir"} la conversation</button>
       <button class="btn" data-snooze="${esc(c.wa_id)}">Plus tard (3 jours)</button>
       <button class="btn win" data-status="gagne" data-id2="${esc(c.wa_id)}">Gagné</button>
       <button class="btn lose" data-status="perdu" data-id2="${esc(c.wa_id)}">Perdu</button>
+      ${assignBtn(c)}
     </div>
     <div class="thread ${openThreads.has(c.wa_id) ? "" : "hidden"}" id="th-${esc(c.wa_id)}"></div>
   </article>`;
 }
 
-function renderRepondre(){
-  const list = data.pending || [];
+function splitByAge(list){
   const late = [], fresh = [], old = [];
   for (const c of list){ const m = mins(c.last_in_at); if (m >= OLD_DAYS*1440) old.push(c); else if (m >= LATE_MIN) late.push(c); else fresh.push(c); }
+  return { late, fresh, old };
+}
+
+function pendingSection(list, emptyTitle){
+  const { late, fresh, old } = splitByAge(list);
   let h = "";
-  if (!late.length && !fresh.length){
-    h += `<h2>À répondre</h2><div class="empty"><b>Tout le monde a eu sa réponse</b>Aucun client n'attend en ce moment.</div>`;
-  }
-  if ((late.length || fresh.length) && !list.some(c => c.suggestion)) h += `<div class="banner show" style="background:#faf9f6;border:1px dashed #ddd6cb">Bientôt : sous chaque message, Claude préparera une réponse à copier et la liste de ce qu'il manque pour faire le devis.</div>`;
+  if (!late.length && !fresh.length) h += `<div class="empty"><b>${emptyTitle}</b>Aucun client n'attend en ce moment.</div>`;
   if (late.length) h += `<h2><span class="pill late">${late.length}</span> Attendent depuis plus de 2 h</h2><div class="list">${late.map(pendingCard).join("")}</div>`;
   if (fresh.length) h += `<h2>Moins de 2 h</h2><div class="list">${fresh.map(pendingCard).join("")}</div>`;
   if (old.length) h += `<details class="old"><summary>${old.length} conversation${old.length>1?"s":""} sans réponse depuis plus de ${OLD_DAYS} jours</summary><div class="list">${old.map(pendingCard).join("")}</div></details>`;
+  return { html: h, active: late.length + fresh.length, late: late.length };
+}
+
+function renderRepondre(){
+  const all = data.pending || [];
+  let h = "";
+  if (all.length && !all.some(c => c.suggestion)) h += `<div class="banner show soft">Bientôt : sous chaque message, Claude préparera une réponse à copier et la liste de ce qu'il manque pour faire le devis.</div>`;
+  let counter;
+  if (isB2C()){
+    const s = pendingSection(all, "Tout le monde a eu sa réponse");
+    h += `<h2>Mes conversations</h2>` + s.html; counter = s;
+  } else {
+    const mine = all.filter(c => (c.assigned_to || "lamyaa") === "lamyaa");
+    const b2c = all.filter(c => c.assigned_to === "nourredine");
+    const b = splitByAge(b2c);
+    const oldest = b2c.filter(c => mins(c.last_in_at) < OLD_DAYS*1440).sort((x,y) => new Date(x.last_in_at) - new Date(y.last_in_at))[0];
+    const activeB2C = b.late.length + b.fresh.length;
+    h += `<div class="b2cbar ${b.late.length ? "hot" : ""}"><b>B2C · Nourredine</b> : ${activeB2C ? `${activeB2C} en attente${oldest ? `, la plus ancienne depuis ${dur(mins(oldest.last_in_at))}` : ""}${b.late.length ? ` · <span class="pill late">${b.late.length} depuis plus de 2 h</span>` : ""}` : "aucune conversation en attente"}</div>`;
+    const s = pendingSection(mine, "Tout le monde a eu sa réponse");
+    h += `<h2>${me().role === "admin" ? "Chez Lamyaa (B2B)" : "Mes conversations (B2B)"}</h2>` + s.html;
+    if (b2c.length) h += `<details class="old"><summary>Voir les ${b2c.length} conversation${b2c.length>1?"s":""} en attente chez Nourredine (B2C)</summary><div class="list">${b2c.map(pendingCard).join("")}</div></details>`;
+    counter = me().role === "admin" ? { active: s.active + activeB2C, late: s.late + b.late.length } : s;
+  }
   $("#tab-repondre").innerHTML = h;
-  const active = late.length + fresh.length;
-  $("#cRep").textContent = active;
-  $("#cRep").className = "count" + (late.length ? " hot" : (active ? " warm" : ""));
+  $("#cRep").textContent = counter.active;
+  $("#cRep").className = "count" + (counter.late ? " hot" : (counter.active ? " warm" : ""));
 }
 
 function renderRelancer(){
@@ -371,19 +447,33 @@ function nowBlock(s){
     ${kpi(s.devis_en_cours, "Devis en cours", "marqués « devis envoyé »")}
   </div>`;
 }
+function personRow(label, s){
+  if (!s) return "";
+  return `<tr><td><b>${label}</b></td><td>${s.demandes}</td><td>${pct(s.repondues_2h, s.demandes)}</td><td>${s.delai_median_min == null ? "—" : dur(s.delai_median_min)}</td><td>${s.en_attente}${s.en_attente_2h ? ` <span class="pill late">${s.en_attente_2h} &gt; 2 h</span>` : ""}</td><td>${s.a_relancer}</td><td>${s.classees ?? 0}</td></tr>`;
+}
 function renderRecap(){
   const st = data.stats || {};
   let h = "";
   if (st.today) h += nowBlock(st.today);
+  if (!isB2C() && (st.lamyaa || st.nourredine)){
+    h += `<h2>Aujourd'hui, par personne</h2><div class="tablewrap"><table class="people"><thead><tr><th></th><th>Demandes</th><th>&lt; 2 h</th><th>Délai médian</th><th>En attente</th><th>À relancer</th><th>Classées sans réponse</th></tr></thead><tbody>
+      ${personRow("Lamyaa (B2B)", st.lamyaa)}${personRow("Nourredine (B2C)", st.nourredine)}</tbody></table></div>`;
+  }
   if (st.today) h += block("Aujourd'hui (24 dernières heures)", st.today);
   if (st.week) h += block("7 derniers jours", st.week);
+  if (!isB2C()){
+    const d = data.dismissed || [];
+    h += `<h2>Classées « pas besoin de répondre » (24 h)</h2>`;
+    h += d.length ? `<div class="list">${d.map(x => `<div class="card mini ${looksLikeQuestion(x.last_text) ? "late" : ""}"><div class="row"><div class="who"><div class="name">${esc(PEOPLE[x.who] || (x.who === "dan" ? "Dan" : x.who))} <span class="pill">${esc(REASONS[x.detail] || x.detail)}</span> <span class="num">${esc(fmtNum(x.wa_id))} · ${esc(hm(x.at))}</span>${looksLikeQuestion(x.last_text) ? ` <span class="pill late">question ?</span>` : ""}</div><div class="msg">${esc(x.last_text || "")}</div></div></div></div>`).join("")}</div>`
+      : `<div class="empty"><b>Rien de classé</b>Aucune conversation retirée sans réponse sur les dernières 24 h.</div>`;
+  }
   h += `<p class="note">Bientôt : ce récap vous sera envoyé chaque soir sur WhatsApp.</p>`;
   $("#tab-recap").innerHTML = h;
 }
 
 function renderMeta(){
   const last = data.last_event_at;
-  $("#meta").innerHTML = `Mis à jour à <b>${hm(data.now)}</b>` + (last ? `<br>Dernier message reçu ${mins(last) < 1 ? "à l'instant" : "il y a " + esc(dur(mins(last)))}` : "");
+  $("#meta").innerHTML = `<b>${esc(me().name)}</b>${isB2C() ? " · B2C" : (me().role === "resp" ? " · B2B" : "")} · mis à jour à <b>${hm(data.now)}</b>` + (last ? `<br>Dernier message reçu ${mins(last) < 1 ? "à l'instant" : "il y a " + esc(dur(mins(last)))}` : "");
   const hb = $("#healthBanner");
   const h = new Date().getHours(), wd = new Date().getDay();
   if (!DEMO && last && mins(last) > 24*60 && wd >= 1 && wd <= 6 && h >= 11){
@@ -402,39 +492,47 @@ function render(){
 }
 
 async function loadThread(id, toggle = true){
-  const el = document.getElementById("th-" + id);
-  if (!el) return;
+  const els = document.querySelectorAll(`[id="th-${CSS.escape(id)}"]`);
+  if (!els.length) return;
   if (toggle){
-    if (openThreads.has(id)){ openThreads.delete(id); el.classList.add("hidden"); render(); return; }
-    openThreads.add(id); el.classList.remove("hidden");
+    if (openThreads.has(id)){ openThreads.delete(id); render(); return; }
+    openThreads.add(id); els.forEach(el => el.classList.remove("hidden"));
   }
-  el.innerHTML = `<div class="note">Chargement…</div>`;
+  els.forEach(el => el.innerHTML = `<div class="note">Chargement…</div>`);
   try{
     const msgs = (await api("messages", { wa_id:id })).slice().reverse();
-    el.innerHTML = msgs.map(m => `<div class="bubble ${m.direction}">${esc(m.body)}<time>${esc(clock(m.ts))}</time></div>`).join("") || `<div class="note">Aucun message.</div>`;
-    el.scrollTop = el.scrollHeight;
+    const html = msgs.map(m => `<div class="bubble ${m.direction}">${esc(m.body)}<time>${esc(clock(m.ts))}</time></div>`).join("") || `<div class="note">Aucun message.</div>`;
+    document.querySelectorAll(`[id="th-${CSS.escape(id)}"]`).forEach(el => { el.innerHTML = html; el.scrollTop = el.scrollHeight; });
     if (toggle) render();
-  }catch(e){ el.innerHTML = `<div class="note">Impossible de charger la conversation.</div>`; }
+  }catch(e){ els.forEach(el => el.innerHTML = `<div class="note">Impossible de charger la conversation.</div>`); }
 }
 
 /* ---------- actions ---------- */
+async function copyText(t, okMsg){
+  try{ await navigator.clipboard.writeText(t); }
+  catch{ const ta = document.createElement("textarea"); ta.value = t; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove(); }
+  toast(okMsg, 4500);
+}
+
 document.addEventListener("click", async ev => {
   const b = ev.target.closest("button");
   if (!b) return;
   if (b.dataset.tab){ setTab(b.dataset.tab); return; }
   if (b.dataset.thread){ loadThread(b.dataset.thread); return; }
-  if (b.dataset.copy || b.dataset.copyrel){
-    const ta = b.dataset.copy ? document.querySelector(`textarea[data-sugg="${CSS.escape(b.dataset.copy)}"]`) : document.querySelector(`textarea[data-rel="${CSS.escape(b.dataset.copyrel)}"]`);
-    try{ await navigator.clipboard.writeText(ta.value); toast("Copié. Collez-le dans WhatsApp."); }catch{ ta.select(); document.execCommand("copy"); toast("Copié."); }
-    return;
-  }
+  if (b.dataset.copynum){ copyText("+" + digits(b.dataset.copynum), "Numéro copié. Dans WhatsApp Web : Ctrl+Alt+/ puis Ctrl+V, et Entrée."); return; }
+  if (b.dataset.copy){ const ta = document.querySelector(`textarea[data-sugg="${CSS.escape(b.dataset.copy)}"]`); copyText(ta.value, "Réponse copiée. Collez-la dans WhatsApp."); return; }
+  if (b.dataset.copyrel){ const ta = document.querySelector(`textarea[data-rel="${CSS.escape(b.dataset.copyrel)}"]`); copyText(ta.value, "Relance copiée. Collez-la dans WhatsApp."); return; }
+  if (b.dataset.dismiss){ dismissOpen = dismissOpen === b.dataset.dismiss ? null : b.dataset.dismiss; render(); return; }
+  if (b.dataset.cancel){ dismissOpen = null; render(); return; }
+
   let action = null, extra = {}, msg = "";
-  if (b.dataset.dismiss){ action = "dismiss"; extra = { wa_id:b.dataset.dismiss }; msg = "Retiré de la liste."; }
+  if (b.dataset.reason){ action = "dismiss"; extra = { wa_id:b.dataset.id2, reason:b.dataset.reason }; msg = "Retiré de la liste (" + REASONS[b.dataset.reason] + ")."; }
   else if (b.dataset.snooze){ action = "snooze"; extra = { wa_id:b.dataset.snooze, days:3 }; msg = "On vous la remontre dans 3 jours."; }
+  else if (b.dataset.assign){ action = "assign"; extra = { wa_id:b.dataset.id2, to:b.dataset.assign }; msg = b.dataset.assign === "nourredine" ? "Confiée à Nourredine (B2C)." : "Conversation reprise par Lamyaa."; }
   else if (b.dataset.status){ action = "status"; extra = { wa_id:b.dataset.id2, status:b.dataset.status }; msg = { devis_envoye:"Noté : devis envoyé.", gagne:"Bravo ! Marqué gagné.", perdu:"Marqué perdu.", perso:"Conversation perso : elle ne sera plus suivie." }[b.dataset.status]; }
   if (!action) return;
   b.disabled = true;
-  try{ await api(action, extra); toast(msg); await refresh(); }
+  try{ await api(action, extra); dismissOpen = null; toast(msg); await refresh(); }
   catch(e){ toast("Erreur, réessayez."); b.disabled = false; }
 });
 
@@ -461,30 +559,31 @@ function notify(title, body){
     const n = new Notification(title, { body, tag:"batwa", renotify:true, requireInteraction:true });
     n.onclick = () => { window.focus(); setTab("repondre"); n.close(); };
   }
-  document.title = "(" + (data?.pending?.length || "!") + ") Suivi WhatsApp · Bar à Textile";
 }
 function checkAlerts(){
   if (!data) return;
   const s = settings(), now = new Date();
   const active = (data.pending || []).filter(c => mins(c.last_in_at) < OLD_DAYS*1440);
+  const mine = isB2C() ? active : active.filter(c => me().role === "admin" || (c.assigned_to || "lamyaa") === "lamyaa");
   const late = active.filter(c => mins(c.last_in_at) >= LATE_MIN);
-  document.title = (active.length ? "(" + active.length + ") " : "") + "Suivi WhatsApp · Bar à Textile";
+  document.title = (mine.length ? "(" + mine.length + ") " : "") + "Suivi WhatsApp · Bar à Textile";
 
-  // Alerte immédiate : un client vient de dépasser 2 h
+  // Alerte immédiate : un client vient de dépasser 2 h (pour la responsable : aussi ceux du B2C)
   if (s.alert2h){
     const seen = new Set(store.get("seen2h", []));
     const fresh = late.filter(c => !seen.has(c.wa_id + "|" + c.last_in_at));
     if (fresh.length){
-      notify(`${fresh.length} client${fresh.length>1?"s attendent":" attend"} depuis plus de 2 h`, fresh.map(c => c.name || fmtNum(c.wa_id)).slice(0,4).join(", "));
+      const label = c => (c.name || fmtNum(c.wa_id)) + (!isB2C() && c.assigned_to === "nourredine" ? " (B2C)" : "");
+      notify(`${fresh.length} client${fresh.length>1?"s attendent":" attend"} depuis plus de 2 h`, fresh.map(label).slice(0,4).join(", "));
       late.forEach(c => seen.add(c.wa_id + "|" + c.last_in_at));
       store.set("seen2h", [...seen].slice(-300));
     }
   }
-  // Rappel aux heures fixes
+  // Rappel aux heures fixes (ses propres conversations)
   const key = now.toDateString() + "-" + now.getHours();
   if (s.hours.includes(now.getHours()) && now.getMinutes() < 15 && store.get("lastHourly","") !== key){
     store.set("lastHourly", key);
-    if (active.length) notify(`${active.length} conversation${active.length>1?"s":""} en attente de réponse`, active.slice(0,5).map(c => (c.name || fmtNum(c.wa_id)) + " · " + dur(mins(c.last_in_at))).join("\n"));
+    if (mine.length) notify(`${mine.length} conversation${mine.length>1?"s":""} en attente de réponse`, mine.slice(0,5).map(c => (c.name || fmtNum(c.wa_id)) + " · " + dur(mins(c.last_in_at))).join("\n"));
     const rel = (data.relances || []).length;
     if (now.getHours() === Math.min(...s.hours) && rel) setTimeout(() => notify(`${rel} devis à relancer aujourd'hui`, "Ouvrez l'onglet « À relancer »."), 4000);
   }
@@ -532,6 +631,9 @@ $("#loginForm").addEventListener("submit", async ev => {
 function start(){
   $("#login").classList.add("hidden"); $("#app").classList.remove("hidden");
   $("#demoBanner").classList.toggle("show", DEMO);
+  if (DEMO) $("#demoBanner").innerHTML = isB2C()
+    ? "Mode démonstration : conversations fictives, rien n’est enregistré. Vue de <b>Nourredine (B2C)</b> : il ne voit que ce que Lamyaa lui a confié."
+    : "Mode démonstration : conversations fictives, rien n’est enregistré. Vue de <b>Lamyaa</b> ; ajoutez <b>&amp;as=nourredine</b> à l’adresse pour voir la vue B2C.";
   fillSettings(); updateAlertBtn(); setTab(activeTab);
   if (data){ render(); checkAlerts(); } else refresh();
   clearInterval(start._r); start._r = setInterval(refresh, REFRESH_MS);
@@ -543,23 +645,36 @@ function start(){
 /* ---------- démonstration ---------- */
 function demoData(){
   const ago = m => new Date(Date.now() - m*60000).toISOString();
+  const as = QS.get("as") || "lamyaa";
+  const meDemo = as === "nourredine" ? { user:"nourredine", name:"Nourredine", role:"b2c" } : (as === "dan" ? { user:"dan", name:"Dan", role:"admin" } : { user:"lamyaa", name:"Lamyaa", role:"resp" });
+  const pending = [
+    { wa_id:"212661000111", name:"Karim — Atlas Sport", last_in_at:ago(205), last_text:"Bonjour, c'est pour 120 maillots floqués pour notre tournoi du 15 novembre. Vous pouvez faire ?", ref_bt:"BT-7K2M9", status:"en_cours", assigned_to:"lamyaa", suggestion:"Bonjour Karim, oui c'est faisable pour le 15 novembre. Pour vous faire le devis, pouvez-vous me préciser la répartition des tailles, la couleur des maillots et m'envoyer votre logo (PDF ou PNG) ? Je vous envoie le prix dans la foulée.", missing_info:["Tailles","Couleur","Logo"] },
+    { wa_id:"212700223344", name:"Salma Bennani", last_in_at:ago(140), last_text:"Et pour la broderie sur la poitrine c'est combien en plus ?", ref_bt:null, status:"devis_envoye", assigned_to:"nourredine", suggestion:null, missing_info:null },
+    { wa_id:"212655887766", name:"", last_in_at:ago(38), last_text:"[image] Comme ce modèle mais en bleu marine", ref_bt:"BT-Q4X8P", status:"en_cours", assigned_to:"nourredine", suggestion:null, missing_info:null },
+    { wa_id:"212612345678", name:"Youssef (OCP)", last_in_at:ago(6), last_text:"Bonjour, je souhaite un devis pour 300 tote bags avec impression 1 couleur.", ref_bt:null, status:"en_cours", assigned_to:"lamyaa", suggestion:null, missing_info:null },
+    { wa_id:"212698765432", name:"Hôtel Riad Salam", last_in_at:ago(60*24*9), last_text:"Ok merci, je reviens vers vous", ref_bt:null, status:"en_cours", assigned_to:"lamyaa", suggestion:null, missing_info:null }
+  ];
+  const relances = [
+    { wa_id:"212644556677", name:"Nadia El Amrani", last_out_at:ago(60*24*3+120), last_text:"[document] Devis BAT-2026-118 — 200 polos brodés", ref_bt:"BT-H3N7D", status:"devis_envoye", assigned_to:"lamyaa" },
+    { wa_id:"212633221100", name:"Mehdi Agence Pixel", last_out_at:ago(60*24*5), last_text:"Pour 80 hoodies avec impression dos + cœur ce serait 145 dh pièce HT.", ref_bt:null, status:"en_cours", assigned_to:"nourredine" }
+  ];
+  const mineOnly = l => meDemo.role === "b2c" ? l.filter(c => c.assigned_to === "nourredine") : l;
   return {
-    now: new Date().toISOString(), last_event_at: ago(4),
-    pending: [
-      { wa_id:"212661000111", name:"Karim — Atlas Sport", last_in_at:ago(205), last_text:"Bonjour, c'est pour 120 maillots floqués pour notre tournoi du 15 novembre. Vous pouvez faire ?", ref_bt:"BT-7K2M9", status:"en_cours", suggestion:"Bonjour Karim, oui c'est faisable pour le 15 novembre. Pour vous faire le devis, pouvez-vous me préciser la répartition des tailles, la couleur des maillots et m'envoyer votre logo (PDF ou PNG) ? Je vous envoie le prix dans la foulée.", missing_info:["Tailles","Couleur","Logo"] },
-      { wa_id:"212700223344", name:"Salma Bennani", last_in_at:ago(140), last_text:"Et pour la broderie sur la poitrine c'est combien en plus ?", ref_bt:null, status:"devis_envoye", suggestion:null, missing_info:null },
-      { wa_id:"212655887766", name:"", last_in_at:ago(38), last_text:"[image] Comme ce modèle mais en bleu marine", ref_bt:"BT-Q4X8P", status:"en_cours", suggestion:null, missing_info:null },
-      { wa_id:"212612345678", name:"Youssef (OCP)", last_in_at:ago(6), last_text:"Bonjour, je souhaite un devis pour 300 tote bags avec impression 1 couleur.", ref_bt:null, status:"en_cours", suggestion:null, missing_info:null },
-      { wa_id:"212698765432", name:"Hôtel Riad Salam", last_in_at:ago(60*24*9), last_text:"Ok merci, je reviens vers vous", ref_bt:null, status:"en_cours", suggestion:null, missing_info:null }
-    ],
-    relances: [
-      { wa_id:"212644556677", name:"Nadia El Amrani", last_out_at:ago(60*24*3+120), last_text:"[document] Devis BAT-2026-118 — 200 polos brodés", ref_bt:"BT-H3N7D", status:"devis_envoye" },
-      { wa_id:"212633221100", name:"Mehdi Agence Pixel", last_out_at:ago(60*24*5), last_text:"Pour 80 hoodies avec impression dos + cœur ce serait 145 dh pièce HT.", ref_bt:null, status:"en_cours" }
-    ],
+    now: new Date().toISOString(), last_event_at: ago(4), me: meDemo,
+    pending: mineOnly(pending), relances: mineOnly(relances),
     stats: {
-      today: { jours:1, demandes:14, nouveaux_contacts:5, repondues:12, repondues_2h:9, delai_median_min:34, en_attente:4, en_attente_2h:2, a_relancer:2, devis_en_cours:6, gagnes:1, perdus:0 },
-      week: { jours:7, demandes:83, nouveaux_contacts:27, repondues:79, repondues_2h:58, delai_median_min:52, en_attente:4, en_attente_2h:2, a_relancer:2, devis_en_cours:6, gagnes:5, perdus:2 }
-    }
+      today: { jours:1, demandes:14, nouveaux_contacts:5, repondues:12, repondues_2h:9, delai_median_min:34, en_attente:4, en_attente_2h:2, a_relancer:2, devis_en_cours:6, gagnes:1, perdus:0, classees:3 },
+      week: { jours:7, demandes:83, nouveaux_contacts:27, repondues:79, repondues_2h:58, delai_median_min:52, en_attente:4, en_attente_2h:2, a_relancer:2, devis_en_cours:6, gagnes:5, perdus:2, classees:11 },
+      ...(meDemo.role === "b2c" ? {} : {
+        lamyaa: { demandes:9, repondues_2h:6, delai_median_min:41, en_attente:2, en_attente_2h:1, a_relancer:1, classees:1 },
+        nourredine: { demandes:5, repondues_2h:3, delai_median_min:28, en_attente:2, en_attente_2h:1, a_relancer:1, classees:2 }
+      })
+    },
+    dismissed: meDemo.role === "b2c" ? [] : [
+      { at:ago(50), who:"nourredine", wa_id:"212611223344", detail:"merci_ok", last_text:"Merci beaucoup, bonne journée" },
+      { at:ago(95), who:"nourredine", wa_id:"212699887766", detail:"autre", last_text:"Vous livrez à Rabat ? Et c'est quoi le délai ?" },
+      { at:ago(180), who:"lamyaa", wa_id:"212677665544", detail:"telephone", last_text:"Je vous appelle tout à l'heure" }
+    ]
   };
 }
 let demo = null;
@@ -576,6 +691,8 @@ async function demoApi(action, extra){
       { direction:"in", ts:new Date(b-4000e3).toISOString(), body:"Bonjour, je vous contacte depuis votre site." }
     ];
   }
+  if (action === "assign"){ const c = [...demo.pending, ...demo.relances].find(x => x.wa_id === extra.wa_id); if (c) c.assigned_to = extra.to; }
+  if (action === "dismiss"){ demo.pending = demo.pending.filter(x => x.wa_id !== extra.wa_id); }
   return { ok:true };
 }
 
