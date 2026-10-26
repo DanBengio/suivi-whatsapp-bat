@@ -93,6 +93,13 @@ h2 .pill{text-transform:none;letter-spacing:0}
 .pill.ai{background:#eef0fb;color:#3c4aa5}
 .pill.ai.close{background:#e4f4ea;color:var(--green)}
 .pill.ai.act{background:var(--prune-soft);color:var(--prune)}
+.aibar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:16px 0 0}
+.aibar .lbl{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-right:4px}
+.fchip{border:1px solid var(--line);background:#fff;border-radius:20px;padding:4px 10px;font-size:12.5px;font-weight:600;color:var(--ink)}
+.fchip b{font-weight:800;margin-left:4px;color:var(--muted)}
+.fchip.on{background:#3c4aa5;border-color:#3c4aa5;color:#fff}
+.fchip.on b{color:#fff}
+.fchip[disabled]{opacity:.4;cursor:default}
 
 /* Fil de la conversation */
 .thread{margin-top:12px;border-top:1px solid var(--line);padding-top:10px;display:flex;flex-direction:column;gap:6px;max-height:340px;overflow:auto}
@@ -299,6 +306,31 @@ function contactButtons(c){
 }
 
 const CLAUDE_CAT = { a_repondre:"à répondre", pas_besoin:"pas besoin de répondre", a_relancer:"à relancer", gagne:"commande terminée", perdu:"perdu", pas_client:"pas un client" };
+const AI_FILTERS = [
+  ["all", "Tous", c => true],
+  ["urgent", "Urgent", c => c.suggestion_urgence === "haute"],
+  ["a_repondre", "À répondre", c => c.suggestion_categorie === "a_repondre"],
+  ["a_relancer", "À relancer", c => c.suggestion_categorie === "a_relancer"],
+  ["pas_besoin", "Pas besoin", c => c.suggestion_categorie === "pas_besoin"],
+  ["gagne", "Terminée", c => c.suggestion_categorie === "gagne"],
+  ["perdu", "Perdu", c => c.suggestion_categorie === "perdu"],
+  ["pas_client", "Pas un client", c => c.suggestion_categorie === "pas_client"],
+  ["none", "Sans avis", c => !c.suggestion_categorie]
+];
+const aiFilter = store.get("aifilter", { repondre:"all", relancer:"all" });
+function applyAi(list, tab){
+  const f = AI_FILTERS.find(x => x[0] === (aiFilter[tab] || "all")) || AI_FILTERS[0];
+  return list.filter(f[2]);
+}
+function aiBar(list, tab){
+  if (!list.some(c => c.suggestion_categorie)) return "";
+  const cur = aiFilter[tab] || "all";
+  return `<div class="aibar"><span class="lbl">Avis de Claude</span>${AI_FILTERS.map(([k, label, fn]) => {
+    const n = list.filter(fn).length;
+    return `<button class="fchip ${k === cur ? "on" : ""}" data-aifilter="${k}" data-aitab="${tab}" ${!n && k !== cur ? "disabled" : ""}>${label}<b>${n}</b></button>`;
+  }).join("")}</div>`;
+}
+
 function verdictBlock(c, liste){
   if (!c.suggestion_categorie) return "";
   const cat = c.suggestion_categorie, label = CLAUDE_CAT[cat] || cat;
@@ -408,7 +440,15 @@ function pendingSection(list, emptyTitle){
 }
 
 function renderRepondre(){
-  const all = data.pending || [];
+  const raw = data.pending || [];
+  const full = buildRepondre(raw);
+  const shown = (aiFilter.repondre || "all") === "all" ? full : buildRepondre(applyAi(raw, "repondre"));
+  $("#tab-repondre").innerHTML = aiBar(raw, "repondre") + shown.h;
+  $("#cRep").textContent = full.counter.active;
+  $("#cRep").className = "count" + (full.counter.late ? " hot" : (full.counter.active ? " warm" : ""));
+}
+
+function buildRepondre(all){
   let h = "";
   if (all.length && !all.some(c => c.suggestion)) h += `<div class="banner show soft">Bientôt : sous chaque message, Claude préparera une réponse à copier et la liste de ce qu'il manque pour faire le devis.</div>`;
   let counter;
@@ -427,20 +467,19 @@ function renderRepondre(){
     if (b2c.length) h += `<details class="old"><summary>Voir les ${b2c.length} conversation${b2c.length>1?"s":""} en attente chez Nourredine (B2C)</summary><div class="list">${b2c.map(pendingCard).join("")}</div></details>`;
     counter = me().role === "admin" ? { active: s.active + activeB2C, late: s.late + b.late.length } : s;
   }
-  $("#tab-repondre").innerHTML = h;
-  $("#cRep").textContent = counter.active;
-  $("#cRep").className = "count" + (counter.late ? " hot" : (counter.active ? " warm" : ""));
+  return { h, counter };
 }
 
 function renderRelancer(){
-  const list = data.relances || [];
-  let h = `<h2>Devis sans réponse depuis plus de 2 jours</h2>`;
+  const all = data.relances || [];
+  const list = applyAi(all, "relancer");
+  let h = aiBar(all, "relancer") + `<h2>Devis sans réponse depuis plus de 2 jours</h2>`;
   h += list.length ? `<div class="list">${list.map(relanceCard).join("")}</div>`
     : `<div class="empty"><b>Aucune relance à faire</b>Les devis restés sans réponse depuis plus de 2 jours apparaîtront ici chaque matin.</div>`;
   h += `<p class="note">Une conversation apparaît ici quand nous avons écrit en dernier, avec un devis (statut « Devis envoyé », document envoyé, ou prix dans le message), et que le client ne répond plus depuis 2 jours. Dès qu'un message de relance est envoyé, elle disparaît pour 2 jours.</p>`;
   $("#tab-relancer").innerHTML = h;
-  $("#cRel").textContent = list.length;
-  $("#cRel").className = "count" + (list.length ? " warm" : "");
+  $("#cRel").textContent = all.length;
+  $("#cRel").className = "count" + (all.length ? " warm" : "");
 }
 
 function kpi(v, l, s, cls=""){ return `<div class="kpi ${cls}"><div class="v">${v}</div><div class="l">${l}</div>${s?`<div class="s">${s}</div>`:""}</div>`; }
@@ -534,6 +573,7 @@ document.addEventListener("click", async ev => {
   const b = ev.target.closest("button");
   if (!b) return;
   if (b.dataset.tab){ setTab(b.dataset.tab); return; }
+  if (b.dataset.aifilter){ aiFilter[b.dataset.aitab] = b.dataset.aifilter; store.set("aifilter", aiFilter); render(); return; }
   if (b.dataset.thread){ loadThread(b.dataset.thread); return; }
   if (b.dataset.copynum){ copyText("+" + digits(b.dataset.copynum), "Numéro copié. Dans WhatsApp Web : Ctrl+Alt+/ puis Ctrl+V, et Entrée."); return; }
   if (b.dataset.copy){ const ta = document.querySelector(`textarea[data-sugg="${CSS.escape(b.dataset.copy)}"]`); copyText(ta.value, "Réponse copiée. Collez-la dans WhatsApp."); return; }
