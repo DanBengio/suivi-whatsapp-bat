@@ -88,6 +88,11 @@ h2 .pill{text-transform:none;letter-spacing:0}
 .assist textarea{width:100%;border:1px solid var(--line);border-radius:9px;padding:8px 10px;font:inherit;font-size:14px;resize:vertical;min-height:64px;background:#fff}
 .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
 .chip{font-size:12px;padding:3px 9px;border-radius:20px;background:var(--prune-soft);color:var(--prune);font-weight:600}
+.verdict{margin-top:10px;font-size:13px;color:#3a4247;display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap}
+.verdict .pill{flex:none}
+.pill.ai{background:#eef0fb;color:#3c4aa5}
+.pill.ai.close{background:#e4f4ea;color:var(--green)}
+.pill.ai.act{background:var(--prune-soft);color:var(--prune)}
 
 /* Fil de la conversation */
 .thread{margin-top:12px;border-top:1px solid var(--line);padding-top:10px;display:flex;flex-direction:column;gap:6px;max-height:340px;overflow:auto}
@@ -293,8 +298,18 @@ function contactButtons(c){
       <a class="btn ghost" href="${openLink(c.wa_id)}" target="_blank" rel="noopener" title="Ouvre un nouvel onglet WhatsApp">${isMobile ? "Ouvrir WhatsApp" : "Nouvel onglet"}</a>`;
 }
 
+const CLAUDE_CAT = { a_repondre:"à répondre", pas_besoin:"pas besoin de répondre", a_relancer:"à relancer", gagne:"commande terminée", perdu:"perdu", pas_client:"pas un client" };
+function verdictBlock(c, liste){
+  if (!c.suggestion_categorie) return "";
+  const cat = c.suggestion_categorie, label = CLAUDE_CAT[cat] || cat;
+  const differs = cat !== liste;
+  const cls = ["pas_besoin","gagne","perdu","pas_client"].includes(cat) ? "close" : (differs ? "act" : "");
+  const urgent = c.suggestion_urgence === "haute" ? ` <span class="pill late">urgent</span>` : "";
+  return `<div class="verdict"><span class="pill ai ${cls}" title="Avis de Claude, à vérifier">Claude : ${esc(label)}</span>${urgent}<span>${esc(c.suggestion_raison || "")}</span></div>`;
+}
+
 function assistBlock(c){
-  const parts = [];
+  const parts = [verdictBlock(c, "a_repondre")];
   if (c.missing_info && c.missing_info.length){
     parts.push(`<div class="assist"><div class="lbl">Il manque pour faire le devis</div><div class="chips">${c.missing_info.map(x=>`<span class="chip">${esc(x)}</span>`).join("")}</div></div>`);
   }
@@ -359,8 +374,9 @@ function relanceCard(c){
       </div>
       <div class="timer">${dur(m)}<small>sans réponse</small></div>
     </div>
-    <div class="assist"><div class="lbl">Message de relance proposé</div>
-      <textarea data-rel="${esc(c.wa_id)}">${esc(relanceText(c))}</textarea>
+    ${verdictBlock(c, "a_relancer")}
+    <div class="assist"><div class="lbl">Message de relance proposé ${c.suggestion ? `<span class="pill">Claude</span>` : ""}</div>
+      <textarea data-rel="${esc(c.wa_id)}">${esc(c.suggestion || relanceText(c))}</textarea>
       <div class="actions"><button class="btn" data-copyrel="${esc(c.wa_id)}">Copier le message</button></div>
     </div>
     <div class="actions">
