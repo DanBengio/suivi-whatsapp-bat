@@ -425,7 +425,9 @@ function relanceCard(c){
 
 function splitByAge(list){
   const late = [], fresh = [], old = [];
-  for (const c of list){ const m = mins(c.last_in_at); if (m >= OLD_DAYS*1440) old.push(c); else if (m >= LATE_MIN) late.push(c); else fresh.push(c); }
+  for (const c of list){ const m = mins(c.last_in_at); if (m >= LATE_MIN) late.push(c); else fresh.push(c); }
+  // 27 oct. : plus de section repliée ; urgent (avis Claude) d'abord, puis les plus récents
+  late.sort((a, b) => ((b.suggestion_urgence === "haute") - (a.suggestion_urgence === "haute")) || (new Date(b.last_in_at) - new Date(a.last_in_at)));
   return { late, fresh, old };
 }
 
