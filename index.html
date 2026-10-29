@@ -423,8 +423,14 @@ function urgentOutCard(c){
 
 function urgentSection(list){
   if (!list.length) return "";
-  const cards = list.map(c => c.kind === "out" ? urgentOutCard(c) : pendingCard(c)).join("");
-  return `<h2><span class="pill late">${list.length}</span> Urgent selon Claude</h2><p class="note" style="margin-top:-4px">Clients qui relancent, et clients pros à qui on a posé une question restée sans réponse depuis plus de 4 h.</p><div class="list">${cards}</div>`;
+  // 29 oct. : d'abord les clients qui attendent notre réponse (pour conclure), puis ceux à qui on a posé une question ; les plus anciens en premier
+  const since = c => new Date(c.kind === "out" ? c.last_out_at : c.last_in_at).getTime();
+  const ins = list.filter(c => c.kind !== "out").sort((a, b) => since(a) - since(b));
+  const outs = list.filter(c => c.kind === "out").sort((a, b) => since(a) - since(b));
+  let h = `<h2><span class="pill late">${list.length}</span> Urgent selon Claude</h2>`;
+  if (ins.length) h += `<p class="note" style="margin:-4px 0 8px"><b>1. Ils attendent notre réponse (${ins.length})</b> : clients qui relancent.</p><div class="list">${ins.map(pendingCard).join("")}</div>`;
+  if (outs.length) h += `<p class="note" style="margin:16px 0 8px"><b>2. On attend leur réponse (${outs.length})</b> : clients pros à qui on a posé une question, sans réponse depuis plus de 4 h. À relancer.</p><div class="list">${outs.map(urgentOutCard).join("")}</div>`;
+  return h;
 }
 
 function relanceCard(c){
