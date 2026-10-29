@@ -2,169 +2,120 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex, nofollow">
-<title>Suivi WhatsApp · Bar à Textile</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>À traiter · Bar à Textile</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@500;600;700;800&family=Inter+Tight:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
+/* Liste unique « À traiter » (30 oct. 2026) : une colonne, deux blocs triés, une ligne = une conversation */
 :root{
-  --blue:#0087b7; --blue-soft:#e3f2f8; --prune:#87223a; --prune-soft:#f6e6ea; --yellow:#f5be45; --yellow-soft:#fdf3dc;
+  --bg:#f6f4f0; --card:#ffffff; --ink:#1d2327; --muted:#6b747a; --line:#e6e2dc;
+  --blue:#0087b7; --blue-soft:#e3f2f8;
+  --prune:#87223a; --prune-soft:#f6e6ea;
+  --yellow:#a87408; --yellow-soft:#fdf3dc;
   --green:#1f8a4c; --green-soft:#e4f4ea;
-  --ink:#1d2327; --muted:#69737a; --line:#e6e2dc; --bg:#f6f4f0; --card:#ffffff;
-  --radius:14px; --shadow:0 1px 2px rgba(0,0,0,.04),0 4px 14px rgba(0,0,0,.05);
+  --wa:#1fa855;
+  --f-display:"Raleway", system-ui, sans-serif;
+  --f-body:"Inter Tight", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --radius:14px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#15191b; --card:#1d2326; --ink:#eef1f2; --muted:#9aa4a9; --line:#2c3438;
+    --blue:#4fb8de; --blue-soft:#163543;
+    --prune:#e37f97; --prune-soft:#3a1d25;
+    --yellow:#f0bf55; --yellow-soft:#3a2f14;
+    --green:#5cc98a; --green-soft:#183324;
+    --wa:#2f9e5a; color-scheme:dark;
+  }
 }
 *{box-sizing:border-box}
-html,body{margin:0}
-body{font-family:Raleway,system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.45}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-bottom:48px}
 button{font:inherit;cursor:pointer}
-a{color:inherit}
-.wrap{max-width:980px;margin:0 auto;padding:0 16px 60px}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.hidden{display:none!important}
+.wrap{max-width:720px;margin:0 auto}
 
-/* Barre du haut */
-header{position:sticky;top:0;z-index:5;background:rgba(246,244,240,.94);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
-.top{max-width:980px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;letter-spacing:.2px}
-.dot{width:12px;height:12px;border-radius:50%;background:var(--blue);box-shadow:16px 0 0 var(--prune),32px 0 0 var(--yellow);margin-right:34px}
-.brand small{font-weight:600;color:var(--muted);font-size:13px}
-.sp{flex:1}
-.meta{font-size:12.5px;color:var(--muted);text-align:right}
-.meta b{color:var(--ink);font-weight:600}
-.iconbtn{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:7px 11px;font-size:13px;font-weight:600;color:var(--ink)}
-.iconbtn.on{background:var(--blue);border-color:var(--blue);color:#fff}
-
-/* Onglets */
-.tabs{max-width:980px;margin:0 auto;padding:0 16px;display:flex;gap:6px;overflow-x:auto}
-.tab{border:0;background:transparent;padding:10px 12px 12px;font-weight:700;color:var(--muted);border-bottom:3px solid transparent;white-space:nowrap}
-.tab.active{color:var(--ink);border-color:var(--blue)}
-.count{display:inline-block;min-width:22px;padding:1px 7px;border-radius:20px;background:var(--line);color:var(--ink);font-size:12px;margin-left:6px;text-align:center}
-.count.hot{background:var(--prune);color:#fff}
-.count.warm{background:var(--yellow);color:var(--ink)}
-
-/* Alerte de connexion */
-.banner{margin:16px 0 0;padding:10px 14px;border-radius:12px;background:var(--yellow-soft);border:1px solid #f1d58f;font-size:13.5px;display:none}
-.banner.show{display:block}
-.banner.demo{background:var(--blue-soft);border-color:#b9dfee}
-
-/* Groupes et cartes */
-h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:26px 0 10px;display:flex;align-items:center;gap:8px}
-h2 .pill{text-transform:none;letter-spacing:0}
-.list{display:flex;flex-direction:column;gap:10px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 16px;border-left:5px solid var(--line)}
-.card.late{border-left-color:var(--prune)}
-.card.soon{border-left-color:var(--yellow)}
-.card.ok{border-left-color:var(--blue)}
-.card.relance{border-left-color:var(--yellow)}
-.row{display:flex;align-items:flex-start;gap:12px}
-.avatar{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:800;color:#fff;background:var(--blue);font-size:14px}
-.card.late .avatar{background:var(--prune)}
-.card.relance .avatar{background:#c9921d}
-.who{flex:1;min-width:0}
-.name{font-weight:700;font-size:15.5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.num{color:var(--muted);font-weight:500;font-size:12.5px}
-.msg{margin-top:4px;color:#3a4247;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.msg .who-said{color:var(--muted);font-weight:600}
-.timer{flex:none;text-align:right;font-weight:800;font-size:15px;font-variant-numeric:tabular-nums}
-.timer small{display:block;font-weight:500;color:var(--muted);font-size:11.5px}
-.late .timer{color:var(--prune)}
-.soon .timer{color:#a7770f}
-.pill{display:inline-block;font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:20px;background:var(--blue-soft);color:var(--blue)}
-.pill.bt{background:var(--yellow-soft);color:#8a6410}
-.pill.devis{background:var(--prune-soft);color:var(--prune)}
-.pill.late{background:var(--prune);color:#fff}
-.actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
-.btn{border:1px solid var(--line);background:#fff;border-radius:9px;padding:6px 11px;font-size:13px;font-weight:600;color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;gap:6px}
-.btn:hover{border-color:#cfc9c0}
-.btn.primary{background:#25a35a;border-color:#25a35a;color:#fff}
-.btn.ghost{border-color:transparent;background:transparent;color:var(--muted)}
-.btn.win{color:var(--green);border-color:#bfe2cc}
-.btn.lose{color:var(--prune);border-color:#e6c3cc}
-.btn[disabled]{opacity:.5;cursor:default}
-
-/* Proposition / infos manquantes */
-.assist{margin-top:12px;border-radius:11px;background:#faf9f6;border:1px dashed #ddd6cb;padding:10px 12px}
-.assist .lbl{font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;display:flex;align-items:center;gap:8px}
-.assist .soon-txt{color:var(--muted);font-size:13px}
-.assist textarea{width:100%;border:1px solid var(--line);border-radius:9px;padding:8px 10px;font:inherit;font-size:14px;resize:vertical;min-height:64px;background:#fff}
-.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
-.chip{font-size:12px;padding:3px 9px;border-radius:20px;background:var(--prune-soft);color:var(--prune);font-weight:600}
-.verdict{margin-top:10px;font-size:13px;color:#3a4247;display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap}
-.verdict .pill{flex:none}
-.pill.ai{background:#eef0fb;color:#3c4aa5}
-.pill.ai.close{background:#e4f4ea;color:var(--green)}
-.pill.ai.act{background:var(--prune-soft);color:var(--prune)}
-.aibar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:16px 0 0}
-.aibar .lbl{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-right:4px}
-.fchip{border:1px solid var(--line);background:#fff;border-radius:20px;padding:4px 10px;font-size:12.5px;font-weight:600;color:var(--ink)}
-.fchip b{font-weight:800;margin-left:4px;color:var(--muted)}
-.fchip.on{background:#3c4aa5;border-color:#3c4aa5;color:#fff}
-.fchip.on b{color:#fff}
-.fchip[disabled]{opacity:.4;cursor:default}
-
-/* Fil de la conversation */
-.thread{margin-top:12px;border-top:1px solid var(--line);padding-top:10px;display:flex;flex-direction:column;gap:6px;max-height:340px;overflow:auto}
-.bubble{max-width:85%;padding:7px 10px;border-radius:10px;font-size:13.5px;overflow-wrap:anywhere}
-.bubble.in{background:#f0eee9;align-self:flex-start}
-.bubble.out{background:#dcf5e5;align-self:flex-end}
-.bubble time{display:block;font-size:11px;color:var(--muted);margin-top:2px}
-
-/* Vide */
-.empty{background:var(--card);border:1px dashed var(--line);border-radius:var(--radius);padding:28px 16px;text-align:center;color:var(--muted)}
-.empty b{display:block;color:var(--ink);font-size:16px;margin-bottom:4px}
-details.old summary{cursor:pointer;color:var(--muted);font-weight:700;font-size:13px;margin:22px 0 10px;list-style:none}
-details.old summary::-webkit-details-marker{display:none}
-details.old summary::before{content:"▸ "}
-details.old[open] summary::before{content:"▾ "}
-
-/* Récap */
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-@media (max-width:760px){.kpis{grid-template-columns:repeat(2,1fr)}}
-.kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)}
-.kpi .v{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums}
-.kpi .l{font-size:12.5px;color:var(--muted);font-weight:600}
-.kpi .s{font-size:12px;color:var(--muted);margin-top:2px}
-.kpi.good .v{color:var(--green)} .kpi.bad .v{color:var(--prune)}
-.note{font-size:12.5px;color:var(--muted);margin-top:12px}
-
-/* Réglages */
-.settings{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-top:16px}
-.settings label{display:block;font-weight:600;font-size:13.5px;margin:10px 0 4px}
-.settings input[type=text]{width:100%;max-width:320px;border:1px solid var(--line);border-radius:9px;padding:8px 10px;font:inherit}
-
-/* Écran code */
-.login{min-height:100vh;display:grid;place-items:center;padding:16px}
-.login .box{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:28px;max-width:360px;width:100%;text-align:center}
-.login h1{font-size:20px;margin:14px 0 6px}
+.login{min-height:100vh;display:grid;place-items:center}
+.login .box{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:28px;max-width:360px;width:100%;text-align:center}
+.login h1{font-family:var(--f-display);font-size:22px;margin:0 0 6px}
 .login p{color:var(--muted);font-size:14px;margin:0 0 16px}
-.login input{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 12px;font:inherit;font-size:16px;text-align:center;letter-spacing:.06em}
+.login input{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 12px;font:inherit;font-size:16px;text-align:center;letter-spacing:.06em;background:var(--bg);color:var(--ink)}
 .login button{margin-top:10px;width:100%;border:0;border-radius:10px;padding:11px;background:var(--blue);color:#fff;font-weight:700;font-size:15px}
 .login .err{color:var(--prune);font-size:13px;min-height:18px;margin-top:8px}
 
-.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%) translateY(80px);background:var(--ink);color:#fff;padding:9px 16px;border-radius:10px;font-size:13.5px;font-weight:600;transition:transform .25s,opacity .25s;z-index:20;opacity:0;visibility:hidden}
-.toast.show{transform:translateX(-50%) translateY(0);opacity:1;visibility:visible}
-/* Équipe B2B / B2C */
-.pill.owner{background:#efe7f7;color:#5b3a86}
-.btn.b2c{color:#5b3a86;border-color:#d9cdea}
-.b2cbar{margin:18px 0 0;padding:10px 14px;border-radius:12px;background:#f4eff9;border:1px solid #e1d6ee;font-size:13.5px}
-.b2cbar.hot{background:var(--prune-soft);border-color:#e6c3cc}
-.banner.soft{background:#faf9f6;border:1px dashed #ddd6cb}
-.dismiss{margin-top:10px;border-radius:11px;background:#faf9f6;border:1px solid var(--line);padding:10px 12px}
-.dismiss .lbl{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
-.dismiss .actions{margin-top:6px}
-.warn{background:var(--yellow-soft);border:1px solid #f1d58f;border-radius:9px;padding:7px 10px;font-size:13px;margin-bottom:8px}
-.card.mini{padding:10px 14px}
-.tablewrap{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
-table.people{width:100%;border-collapse:collapse;font-size:13.5px;font-variant-numeric:tabular-nums}
-table.people th{font-size:12px;color:var(--muted);font-weight:700;text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
-table.people td{padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
-table.people tr:last-child td{border-bottom:0}
-.hidden{display:none!important}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:22px 0 6px;flex-wrap:wrap}
+h1.t{font-family:var(--f-display);font-weight:800;font-size:28px;margin:0;letter-spacing:-.01em}
+h1.t .n{display:inline-grid;place-items:center;min-width:34px;height:34px;padding:0 8px;border-radius:20px;background:var(--prune);color:#fff;font-size:17px;margin-left:8px;vertical-align:4px;font-variant-numeric:tabular-nums}
+.sub{color:var(--muted);font-size:13px;margin:0}
+.lnk{border:0;background:none;color:var(--muted);font-size:13px;text-decoration:underline;padding:4px 0}
+.banner{margin:12px 0 0;padding:9px 12px;border-radius:10px;background:var(--prune-soft);color:var(--prune);font-size:13.5px;font-weight:600}
 
-@media (max-width:600px){
-  .meta{display:none}
-  .timer{font-size:14px}
-  .card{padding:12px 13px}
-  .avatar{width:34px;height:34px;font-size:13px}
+.kpi{margin:14px 0 0;padding:12px 14px;border-radius:var(--radius);background:var(--card);border:1px solid var(--line);display:flex;gap:18px;flex-wrap:wrap}
+.kpi div{min-width:0;flex:1 1 150px}
+.kpi b{display:block;font-family:var(--f-display);font-size:24px;font-weight:800;font-variant-numeric:tabular-nums}
+.kpi span{font-size:12.5px;color:var(--muted)}
+.kpi .bad b{color:var(--prune)} .kpi .good b{color:var(--green)}
+
+h2{font-family:var(--f-display);font-size:14px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:26px 0 4px;display:flex;align-items:center;gap:8px}
+h2 .c{font-variant-numeric:tabular-nums;color:var(--ink)}
+.hint{color:var(--muted);font-size:13px;margin:0 0 10px}
+.list{display:flex;flex-direction:column;gap:8px}
+
+.row{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;align-items:start}
+.row.top{border-left:4px solid var(--prune)}
+.row.low{border-left:4px solid var(--line)}
+.av{grid-row:span 3;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-family:var(--f-display);font-weight:800;font-size:14px;color:#fff;background:var(--blue)}
+.row.top .av{background:var(--prune)}
+.row.low .av{background:var(--muted)}
+.name{font-weight:600;min-width:0;overflow-wrap:anywhere}
+.name small{color:var(--muted);font-weight:400;font-size:12.5px;margin-left:6px;white-space:nowrap}
+.owner{display:inline-block;margin-left:6px;font-size:11.5px;font-weight:700;padding:1px 7px;border-radius:20px;background:var(--blue-soft);color:var(--blue);vertical-align:1px}
+.age{font-variant-numeric:tabular-nums;font-weight:600;font-size:13px;color:var(--muted);white-space:nowrap;text-align:right}
+.row.top .age{color:var(--prune)}
+.age small{display:block;font-weight:400;font-size:11.5px;color:var(--muted)}
+.msg{grid-column:2 / 4;color:var(--ink);opacity:.85;min-width:0;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.msg i{color:var(--muted);font-style:normal}
+.foot{grid-column:2 / 4;display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px}
+.why{font-size:12.5px;font-weight:600;padding:3px 9px;border-radius:20px;background:var(--prune-soft);color:var(--prune)}
+.why.delay{background:var(--yellow-soft);color:var(--yellow)}
+.why.wait{background:var(--blue-soft);color:var(--blue)}
+.why.low{background:var(--bg);color:var(--muted);border:1px solid var(--line)}
+.acts{grid-column:2 / 4;display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.acts .sp{flex:1}
+.b{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:9px;padding:6px 11px;font-size:13px;font-weight:600}
+.b.wa{background:var(--wa);border-color:var(--wa);color:#fff}
+.b.ok{color:var(--green)}
+.b.later{color:var(--muted)}
+.b.win{color:var(--green);border-color:color-mix(in srgb, var(--green) 35%, var(--line))}
+.b.lose{color:var(--prune);border-color:color-mix(in srgb, var(--prune) 35%, var(--line))}
+.b.give{color:var(--blue);font-weight:500}
+.b[disabled]{opacity:.5;cursor:default}
+.thread{grid-column:2 / 4;margin-top:10px;border-top:1px solid var(--line);padding-top:10px;display:flex;flex-direction:column;gap:6px;max-height:420px;overflow:auto}
+.bub{max-width:85%;padding:7px 10px;border-radius:10px;font-size:13.5px;overflow-wrap:anywhere;white-space:pre-wrap;background:var(--bg)}
+.bub.out{align-self:flex-end;background:var(--green-soft)}
+.bub time{display:block;font-size:11px;color:var(--muted);margin-top:2px}
+.note{color:var(--muted);font-size:13px}
+
+.empty{background:var(--card);border:1px dashed var(--line);border-radius:var(--radius);padding:22px;text-align:center;color:var(--muted)}
+.rules{margin:30px 0 0;padding:14px 16px;border-radius:var(--radius);border:1px solid var(--line);background:var(--card);font-size:13.5px}
+.rules h3{font-family:var(--f-display);font-size:15px;margin:0 0 8px}
+.rules ol{margin:0;padding-left:20px;display:grid;gap:4px}
+.rules p{margin:10px 0 0;color:var(--muted)}
+.foot2{margin:18px 0 0;display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom, 0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:10px;font-size:13.5px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s;max-width:calc(100% - 32px)}
+.toast.show{opacity:1}
+@media (prefers-reduced-motion: reduce){.toast{transition:none}}
+@media (max-width:520px){
+  h1.t{font-size:24px}
+  .row{grid-template-columns:auto 1fr}
+  .age{grid-column:2;text-align:left}
+  .av{grid-row:span 4}
+  .msg,.foot,.acts,.thread{grid-column:2}
 }
 </style>
 </head>
@@ -172,9 +123,8 @@ table.people tr:last-child td{border-bottom:0}
 
 <div id="login" class="login hidden">
   <div class="box">
-    <span class="dot" style="display:inline-block"></span>
-    <h1>Suivi WhatsApp</h1>
-    <p>Bar à Textile · entrez le code d'accès</p>
+    <h1>À traiter</h1>
+    <p>Bar à Textile · entrez votre code d'accès</p>
     <form id="loginForm">
       <input id="codeInput" autocomplete="off" placeholder="bat-xxxx-xxxx" aria-label="Code d'accès">
       <button type="submit">Entrer</button>
@@ -183,626 +133,254 @@ table.people tr:last-child td{border-bottom:0}
   </div>
 </div>
 
-<div id="app" class="hidden">
+<div id="app" class="wrap hidden">
   <header>
-    <div class="top">
-      <div class="brand"><span class="dot"></span>Suivi WhatsApp <small>Bar à Textile</small></div>
-      <div class="sp"></div>
-      <div class="meta" id="meta">—</div>
-      <button class="iconbtn" id="alertBtn" title="Notifications et son">🔔 Activer les alertes</button>
+    <div>
+      <h1 class="t">À traiter<span class="n" id="count">0</span></h1>
+      <p class="sub" id="sub"></p>
     </div>
-    <nav class="tabs" role="tablist">
-      <button class="tab active" data-tab="repondre">À répondre<span class="count" id="cRep">0</span></button>
-      <button class="tab" data-tab="relancer">À relancer<span class="count" id="cRel">0</span></button>
-      <button class="tab" data-tab="recap">Récap</button>
-      <button class="tab" data-tab="reglages">Réglages</button>
-    </nav>
   </header>
+  <div class="banner hidden" id="banner"></div>
 
-  <div class="wrap">
-    <div class="banner demo" id="demoBanner">Mode démonstration : conversations fictives, rien n’est enregistré. Vue de Lamyaa ; ajoutez <b>&amp;as=nourredine</b> à l’adresse pour la vue B2C.</div>
-    <div class="banner" id="healthBanner"></div>
+  <div class="kpi hidden" id="kpi"></div>
 
-    <section id="tab-repondre"></section>
-    <section id="tab-relancer" class="hidden"></section>
-    <section id="tab-recap" class="hidden"></section>
-    <section id="tab-reglages" class="hidden">
-      <div class="settings">
-        <label for="hoursInput">Heures du rappel « liste en attente » (séparées par des virgules)</label>
-        <input type="text" id="hoursInput" placeholder="10, 12, 15, 17">
-        <label><input type="checkbox" id="alert2h"> Alerte immédiate quand un client attend depuis plus de 2 h</label>
-        <label><input type="checkbox" id="soundOn"> Son avec les alertes</label>
-        <div class="actions"><button class="btn" id="saveSettings">Enregistrer</button><button class="btn" id="testAlert">Tester l'alerte</button><button class="btn ghost" id="logout">Se déconnecter de cette page</button></div>
-        <p class="note">Les réglages sont gardés sur cet ordinateur. Pour que les alertes fonctionnent, laissez cette page ouverte dans un onglet, à côté de WhatsApp Web.</p>
-      </div>
-    </section>
+  <h2>Ils attendent notre réponse <span class="c" id="cTop">0</span></h2>
+  <p class="hint">À traiter en premier : ces clients nous ont écrit et n'ont pas encore leur réponse.</p>
+  <div class="list" id="top"></div>
+
+  <h2>On attend leur réponse <span class="c" id="cLow">0</span></h2>
+  <p class="hint">À relancer : on leur a posé une question ou envoyé un prix, et ils ne répondent plus.</p>
+  <div class="list" id="low"></div>
+
+  <div class="rules">
+    <h3>Comment la liste marche</h3>
+    <ol>
+      <li>En haut, les clients qui nous relancent (« ?? », « toujours pas de réponse »).</li>
+      <li>Puis les clients avec un délai court (« pour samedi », « demain »).</li>
+      <li>Puis les autres clients qui attendent notre réponse, le plus ancien en premier. Un « je reviens vers vous » de notre part ne compte pas comme une réponse : le client reste en haut.</li>
+      <li>En bas, ceux à qui on a écrit et qui ne répondent pas : après 4 h pour un pro, 24 h pour un particulier.</li>
+    </ol>
+    <p>Quand on répond sur WhatsApp, la ligne part toute seule. Sortent aussi seuls : les « merci », 👍, les échanges terminés, les fournisseurs et les pubs, et tout ce qui n'a pas bougé depuis 7 jours. « C'est réglé » sert aux cas réglés hors WhatsApp (téléphone, boutique, mail). « Plus tard » masque jusqu'au lendemain 9 h, sauf si le client écrit.</p>
+  </div>
+  <div class="foot2">
+    <button class="lnk hidden" id="oldLink" type="button">Ancienne version</button>
+    <button class="lnk" id="logout" type="button">Se déconnecter</button>
   </div>
 </div>
-
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
 (() => {
-const API = "https://prfzjiruivbhaqvnrczk.supabase.co/functions/v1/whatsapp-app";
-const API_URGENT = "https://prfzjiruivbhaqvnrczk.supabase.co/functions/v1/whatsapp-urgent";
-const LATE_MIN = 120, SOON_MIN = 60, OLD_DAYS = 3, REFRESH_MS = 60000;
-const QS = new URLSearchParams(location.search);
-const DEMO = QS.has("demo");
-const PEOPLE = { lamyaa: "Lamyaa", nourredine: "Nourredine" };
-const REASONS = { merci_ok: "Merci / ok", telephone: "Réglé par téléphone", spam: "Spam", perso: "Perso", autre: "Autre" };
-const QUESTION_RE = /\?|combien|prix|tarif|devis|d[ée]lai|dispo|possible|vous avez|est-ce|svp|s'il vous|quand|bch?7al|ch7al|wach|كم|ثمن|بشحال|واش/i;
+  const BASE = "https://prfzjiruivbhaqvnrczk.supabase.co/functions/v1/";
+  const API_LIST = BASE + "whatsapp-liste", API_APP = BASE + "whatsapp-app";
+  const REFRESH_MS = 60000;
+  const PEOPLE = { lamyaa: "Lamyaa", nourredine: "Nourredine" };
+  const $ = s => document.querySelector(s);
+  const store = {
+    get(k, d){ try{ const v = localStorage.getItem("batwa_" + k); return v === null ? d : JSON.parse(v); }catch(e){ return d; } },
+    set(k, v){ try{ localStorage.setItem("batwa_" + k, JSON.stringify(v)); }catch(e){} },
+    del(k){ try{ localStorage.removeItem("batwa_" + k); }catch(e){} }
+  };
+  let code = store.get("code", ""), data = null, lastOk = null;
+  const open = new Set(), threads = new Map(), gone = new Set();
 
-/* ---------- petites aides ---------- */
-const $ = s => document.querySelector(s);
-const store = {
-  get(k, d){ try{ const v = localStorage.getItem("batwa_"+k); return v === null ? d : JSON.parse(v); }catch{ return d; } },
-  set(k, v){ try{ localStorage.setItem("batwa_"+k, JSON.stringify(v)); }catch{} },
-  del(k){ try{ localStorage.removeItem("batwa_"+k); }catch{} }
-};
-const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const digits = n => String(n||"").replace(/\D/g,"");
-const fmtNum = n => { const d = digits(n); return d.startsWith("212") && d.length===12 ? "+212 " + d.slice(3,4) + " " + d.slice(4,6) + " " + d.slice(6,8) + " " + d.slice(8,10) + " " + d.slice(10) : (d ? "+"+d : ""); };
-const initials = (name, num) => { const p = (name||"").split(/[^A-Za-zÀ-ÿ]+/).filter(Boolean); if(!p.length) return String(num||"").slice(-2); return (p[0][0] + (p[1]?.[0]||"")).toUpperCase(); };
-const firstName = name => { const n = (name||"").trim().split(/\s+/)[0] || ""; return /^[A-Za-zÀ-ÿ'-]{2,}$/.test(n) ? n.charAt(0).toUpperCase()+n.slice(1).toLowerCase() : ""; };
-const mins = iso => (Date.now() - new Date(iso).getTime()) / 60000;
-function dur(m){
-  if (m < 1) return "à l'instant";
-  if (m < 60) return Math.floor(m) + " min";
-  if (m < 60*24){ const h = Math.floor(m/60), r = Math.floor(m%60); return h + " h" + (r ? " " + String(r).padStart(2,"0") : ""); }
-  const d = Math.floor(m/1440); return d + (d>1 ? " jours" : " jour");
-}
-const clock = iso => new Date(iso).toLocaleString("fr-FR",{weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
-const hm = iso => new Date(iso).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"});
-function toast(t, ms = 2400){ const el = $("#toast"); el.textContent = t; el.classList.add("show"); clearTimeout(toast._t); toast._t = setTimeout(()=>el.classList.remove("show"), ms); }
-const isMobile = matchMedia("(max-width:700px)").matches;
-const openLink = num => isMobile ? "https://wa.me/" + digits(num) : "https://web.whatsapp.com/send?phone=" + digits(num);
-const looksLikeQuestion = t => QUESTION_RE.test(t || "");
-
-/* ---------- données ---------- */
-let data = null, code = store.get("code", ""), openThreads = new Set(), activeTab = store.get("tab","repondre"), dismissOpen = null;
-const me = () => data?.me || { user:"", name:"", role:"" };
-const isB2C = () => me().role === "b2c";
-
-async function api(action, extra = {}){
-  if (DEMO) return demoApi(action, extra);
-  const r = await fetch(API, { method:"POST", headers:{ "content-type":"application/json", "x-code": code }, body: JSON.stringify({ action, ...extra }) });
-  if (r.status === 401) { throw Object.assign(new Error("code"), { code:401 }); }
-  if (!r.ok) throw new Error("Erreur " + r.status);
-  return r.json();
-}
-
-async function refresh(){
-  try{
-    const urg = DEMO ? Promise.resolve({ urgent: [] }) : fetch(API_URGENT, { method:"POST", headers:{ "content-type":"application/json", "x-code": code }, body:"{}" }).then(r => r.ok ? r.json() : { urgent: [] }).catch(() => ({ urgent: [] }));
-    const [d, u] = await Promise.all([api("load"), urg]);
-    data = d; data.urgent = u.urgent || [];
-    render();
-    checkAlerts();
-  }catch(e){
-    if (e.code === 401){ store.del("code"); showLogin("Code incorrect."); return; }
-    $("#healthBanner").textContent = "Impossible de charger la liste (" + e.message + "). Nouvelle tentative dans 1 minute.";
-    $("#healthBanner").classList.add("show");
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+  const digits = n => String(n || "").replace(/\D/g, "");
+  const fmtNum = n => { const d = digits(n); return d.startsWith("212") && d.length === 12 ? "+212 " + d.slice(3,4) + " " + d.slice(4,6) + " " + d.slice(6,8) + " " + d.slice(8,10) + " " + d.slice(10) : (d ? "+" + d : ""); };
+  const initials = (name, num) => { const p = (name || "").split(/[^A-Za-zÀ-ÿ0-9]+/).filter(Boolean); if (!p.length) return String(num || "").slice(-2); return (p[0][0] + (p[1]?.[0] || "")).toUpperCase(); };
+  const mins = iso => Math.max(0, (Date.now() - new Date(iso).getTime()) / 60000);
+  function dur(m){
+    if (m < 1) return "à l'instant";
+    if (m < 60) return Math.floor(m) + " min";
+    if (m < 1440){ const h = Math.floor(m / 60), r = Math.floor(m % 60); return h + " h" + (r ? " " + String(r).padStart(2, "0") : ""); }
+    const d = Math.floor(m / 1440); return d + (d > 1 ? " jours" : " jour");
   }
-}
-
-/* ---------- rendu ---------- */
-function relanceText(c){
-  const p = firstName(c.name);
-  return `Bonjour${p ? " " + p : ""}, je reviens vers vous au sujet de notre proposition. Avez-vous pu la regarder ? Je peux ajuster les quantités ou le marquage si besoin. Bonne journée !`;
-}
-
-function ownerPill(c){
-  if (isB2C() || !c.assigned_to || c.assigned_to === "lamyaa") return "";
-  return `<span class="pill owner">B2C · ${esc(PEOPLE[c.assigned_to] || c.assigned_to)}</span>`;
-}
-
-function assignBtn(c){
-  if (isB2C()) return "";
-  return c.assigned_to === "nourredine"
-    ? `<button class="btn" data-assign="lamyaa" data-id2="${esc(c.wa_id)}" title="Remettre cette conversation chez Lamyaa">Reprendre</button>`
-    : `<button class="btn b2c" data-assign="nourredine" data-id2="${esc(c.wa_id)}" title="Confier cette conversation à Nourredine">→ B2C (Nourredine)</button>`;
-}
-
-function contactButtons(c){
-  return `<button class="btn primary" data-copynum="${esc(c.wa_id)}" title="Copie le numéro : dans WhatsApp Web, Ctrl+Alt+/ puis Ctrl+V">Copier le n°</button>
-      <a class="btn ghost" href="${openLink(c.wa_id)}" target="_blank" rel="noopener" title="Ouvre un nouvel onglet WhatsApp">${isMobile ? "Ouvrir WhatsApp" : "Nouvel onglet"}</a>`;
-}
-
-const CLAUDE_CAT = { a_repondre:"à répondre", pas_besoin:"pas besoin de répondre", a_relancer:"à relancer", gagne:"commande terminée", perdu:"perdu", pas_client:"pas un client" };
-const AI_FILTERS = [
-  ["all", "Tous", c => true],
-  ["urgent", "Urgent", c => c.suggestion_urgence === "haute"],
-  ["a_repondre", "À répondre", c => c.suggestion_categorie === "a_repondre"],
-  ["a_relancer", "À relancer", c => c.suggestion_categorie === "a_relancer"],
-  ["pas_besoin", "Pas besoin", c => c.suggestion_categorie === "pas_besoin"],
-  ["gagne", "Terminée", c => c.suggestion_categorie === "gagne"],
-  ["perdu", "Perdu", c => c.suggestion_categorie === "perdu"],
-  ["pas_client", "Pas un client", c => c.suggestion_categorie === "pas_client"],
-  ["none", "Sans avis", c => !c.suggestion_categorie]
-];
-const aiFilter = store.get("aifilter", { repondre:"all", relancer:"all" });
-function applyAi(list, tab){
-  const f = AI_FILTERS.find(x => x[0] === (aiFilter[tab] || "all")) || AI_FILTERS[0];
-  return list.filter(f[2]);
-}
-function aiBar(list, tab){
-  if (!list.some(c => c.suggestion_categorie)) return "";
-  const cur = aiFilter[tab] || "all";
-  return `<div class="aibar"><span class="lbl">Avis de Claude</span>${AI_FILTERS.map(([k, label, fn]) => {
-    const n = list.filter(fn).length;
-    return `<button class="fchip ${k === cur ? "on" : ""}" data-aifilter="${k}" data-aitab="${tab}" ${!n && k !== cur ? "disabled" : ""}>${label}<b>${n}</b></button>`;
-  }).join("")}</div>`;
-}
-
-function verdictBlock(c, liste){
-  if (!c.suggestion_categorie) return "";
-  const cat = c.suggestion_categorie, label = CLAUDE_CAT[cat] || cat;
-  const differs = cat !== liste;
-  const cls = ["pas_besoin","gagne","perdu","pas_client"].includes(cat) ? "close" : (differs ? "act" : "");
-  const urgent = c.suggestion_urgence === "haute" ? ` <span class="pill late">urgent</span>` : "";
-  return `<div class="verdict"><span class="pill ai ${cls}" title="Avis de Claude, à vérifier">Claude : ${esc(label)}</span>${urgent}<span>${esc(c.suggestion_raison || "")}</span></div>`;
-}
-
-function assistBlock(c){
-  const parts = [verdictBlock(c, "a_repondre")];
-  if (c.missing_info && c.missing_info.length){
-    parts.push(`<div class="assist"><div class="lbl">Il manque pour faire le devis</div><div class="chips">${c.missing_info.map(x=>`<span class="chip">${esc(x)}</span>`).join("")}</div></div>`);
+  function when(iso){
+    const d = new Date(iso), now = new Date();
+    const t = d.toLocaleTimeString("fr-FR", { hour:"2-digit", minute:"2-digit" });
+    if (d.toDateString() === now.toDateString()) return t;
+    const y = new Date(now); y.setDate(now.getDate() - 1);
+    if (d.toDateString() === y.toDateString()) return "hier " + t;
+    return d.toLocaleDateString("fr-FR", { weekday:"short", day:"numeric" }) + " " + t;
   }
-  if (c.suggestion){
-    parts.push(`<div class="assist"><div class="lbl">Proposition de réponse <span class="pill">Claude</span></div><textarea data-sugg="${esc(c.wa_id)}">${esc(c.suggestion)}</textarea><div class="actions"><button class="btn" data-copy="${esc(c.wa_id)}">Copier</button></div></div>`);
+  const clock = iso => new Date(iso).toLocaleString("fr-FR", { weekday:"short", day:"numeric", month:"short", hour:"2-digit", minute:"2-digit" });
+  function toast(t){ const el = $("#toast"); el.textContent = t; el.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove("show"), 2800); }
+  const me = () => data?.me || { user:"", name:"", role:"" };
+
+  async function call(url, body){
+    const r = await fetch(url, { method:"POST", headers:{ "content-type":"application/json", "x-code": code }, body: JSON.stringify(body) });
+    if (r.status === 401) throw Object.assign(new Error("code"), { code:401 });
+    if (!r.ok) throw new Error("erreur " + r.status);
+    return r.json();
   }
-  return parts.join("");
-}
 
-function dismissBlock(c){
-  if (dismissOpen !== c.wa_id) return "";
-  const warn = looksLikeQuestion(c.last_text)
-    ? `<div class="warn">Attention : le client semble poser une question. Si c'est le cas, il attend une réponse.</div>` : "";
-  return `<div class="dismiss">${warn}<div class="lbl">Pourquoi pas de réponse ?</div><div class="actions">
-    ${Object.entries(REASONS).map(([k,v]) => `<button class="btn" data-reason="${k}" data-id2="${esc(c.wa_id)}">${v}</button>`).join("")}
-    <button class="btn ghost" data-cancel="1">Annuler</button></div></div>`;
-}
-
-function pendingCard(c){
-  const m = mins(c.last_in_at);
-  const cls = m >= LATE_MIN ? "late" : (m >= SOON_MIN ? "soon" : "ok");
-  const num = fmtNum(c.wa_id);
-  return `<article class="card ${cls}" data-id="${esc(c.wa_id)}">
-    <div class="row">
-      <div class="avatar">${esc(initials(c.name, c.wa_id))}</div>
-      <div class="who">
-        <div class="name">${esc(c.name || num)} ${c.name ? `<span class="num">${esc(num)}</span>` : ""}
-          ${ownerPill(c)}
-          ${c.ref_bt ? `<span class="pill bt">${esc(c.ref_bt)}</span>` : ""}
-          ${c.status === "devis_envoye" ? `<span class="pill devis">Devis envoyé</span>` : ""}
-        </div>
-        <div class="msg">${esc(c.last_text || "")}</div>
-      </div>
-      <div class="timer" data-since="${esc(c.last_in_at)}">${dur(m)}<small>reçu ${esc(hm(c.last_in_at))}</small></div>
-    </div>
-    ${assistBlock(c)}
-    <div class="actions">
-      ${contactButtons(c)}
-      <button class="btn" data-thread="${esc(c.wa_id)}">${openThreads.has(c.wa_id) ? "Masquer" : "Voir"} la conversation</button>
-      ${c.status !== "devis_envoye" ? `<button class="btn" data-status="devis_envoye" data-id2="${esc(c.wa_id)}">Devis envoyé</button>` : ""}
-      ${assignBtn(c)}
-      <button class="btn ghost" data-dismiss="${esc(c.wa_id)}" title="Retirer de la liste, avec un motif">Pas besoin de répondre</button>
-    </div>
-    ${dismissBlock(c)}
-    <div class="thread ${openThreads.has(c.wa_id) ? "" : "hidden"}" id="th-${esc(c.wa_id)}"></div>
-  </article>`;
-}
-
-function urgentOutCard(c){
-  const m = mins(c.last_out_at);
-  const num = fmtNum(c.wa_id);
-  return `<article class="card late" data-id="${esc(c.wa_id)}">
-    <div class="row">
-      <div class="avatar">${esc(initials(c.name, c.wa_id))}</div>
-      <div class="who">
-        <div class="name">${esc(c.name || num)} ${c.name ? `<span class="num">${esc(num)}</span>` : ""}
-          ${ownerPill(c)}
-          ${c.ref_bt ? `<span class="pill bt">${esc(c.ref_bt)}</span>` : ""}
-        </div>
-        <div class="msg"><span class="who-said">Notre dernier message :</span> ${esc(c.last_text || "")}</div>
-      </div>
-      <div class="timer">${dur(m)}<small>sans réponse du client</small></div>
-    </div>
-    <div class="verdict"><span class="pill ai act" title="Avis de Claude, à vérifier">Claude : B2B, question sans réponse</span><span>${esc(c.suggestion_raison || "")}</span></div>
-    <div class="actions">
-      ${contactButtons(c)}
-      <button class="btn" data-thread="${esc(c.wa_id)}">${openThreads.has(c.wa_id) ? "Masquer" : "Voir"} la conversation</button>
-      <button class="btn" data-snooze="${esc(c.wa_id)}">Plus tard (3 jours)</button>
-      <button class="btn win" data-status="gagne" data-id2="${esc(c.wa_id)}">Gagné</button>
-      <button class="btn lose" data-status="perdu" data-id2="${esc(c.wa_id)}">Perdu</button>
-      ${assignBtn(c)}
-    </div>
-    <div class="thread ${openThreads.has(c.wa_id) ? "" : "hidden"}" id="th-${esc(c.wa_id)}"></div>
-  </article>`;
-}
-
-function urgentSection(list){
-  if (!list.length) return "";
-  // 29 oct. : d'abord les clients qui attendent notre réponse (pour conclure), puis ceux à qui on a posé une question ; les plus anciens en premier
-  const since = c => new Date(c.kind === "out" ? c.last_out_at : c.last_in_at).getTime();
-  const ins = list.filter(c => c.kind !== "out").sort((a, b) => since(a) - since(b));
-  const outs = list.filter(c => c.kind === "out").sort((a, b) => since(a) - since(b));
-  let h = `<h2><span class="pill late">${list.length}</span> Urgent selon Claude</h2>`;
-  if (ins.length) h += `<p class="note" style="margin:-4px 0 8px"><b>1. Ils attendent notre réponse (${ins.length})</b> : clients qui relancent.</p><div class="list">${ins.map(pendingCard).join("")}</div>`;
-  if (outs.length) h += `<p class="note" style="margin:16px 0 8px"><b>2. On attend leur réponse (${outs.length})</b> : clients pros à qui on a posé une question, sans réponse depuis plus de 4 h. À relancer.</p><div class="list">${outs.map(urgentOutCard).join("")}</div>`;
-  return h;
-}
-
-function relanceCard(c){
-  const m = mins(c.last_out_at);
-  const num = fmtNum(c.wa_id);
-  return `<article class="card relance" data-id="${esc(c.wa_id)}">
-    <div class="row">
-      <div class="avatar">${esc(initials(c.name, c.wa_id))}</div>
-      <div class="who">
-        <div class="name">${esc(c.name || num)} ${c.name ? `<span class="num">${esc(num)}</span>` : ""}
-          ${ownerPill(c)}
-          ${c.ref_bt ? `<span class="pill bt">${esc(c.ref_bt)}</span>` : ""}
-          ${c.status === "devis_envoye" ? `<span class="pill devis">Devis envoyé</span>` : ""}
-        </div>
-        <div class="msg"><span class="who-said">Notre dernier message :</span> ${esc(c.last_text || "")}</div>
-      </div>
-      <div class="timer">${dur(m)}<small>sans réponse</small></div>
-    </div>
-    ${verdictBlock(c, "a_relancer")}
-    <div class="assist"><div class="lbl">Message de relance proposé ${c.suggestion ? `<span class="pill">Claude</span>` : ""}</div>
-      <textarea data-rel="${esc(c.wa_id)}">${esc(c.suggestion || relanceText(c))}</textarea>
-      <div class="actions"><button class="btn" data-copyrel="${esc(c.wa_id)}">Copier le message</button></div>
-    </div>
-    <div class="actions">
-      ${contactButtons(c)}
-      <button class="btn" data-thread="${esc(c.wa_id)}">${openThreads.has(c.wa_id) ? "Masquer" : "Voir"} la conversation</button>
-      <button class="btn" data-snooze="${esc(c.wa_id)}">Plus tard (3 jours)</button>
-      <button class="btn win" data-status="gagne" data-id2="${esc(c.wa_id)}">Gagné</button>
-      <button class="btn lose" data-status="perdu" data-id2="${esc(c.wa_id)}">Perdu</button>
-      ${assignBtn(c)}
-    </div>
-    <div class="thread ${openThreads.has(c.wa_id) ? "" : "hidden"}" id="th-${esc(c.wa_id)}"></div>
-  </article>`;
-}
-
-function splitByAge(list){
-  const late = [], fresh = [], old = [];
-  for (const c of list){ const m = mins(c.last_in_at); if (m >= LATE_MIN) late.push(c); else fresh.push(c); }
-  // 27 oct. : plus de section repliée ; urgent (avis Claude) d'abord, puis les plus récents
-  late.sort((a, b) => ((b.suggestion_urgence === "haute") - (a.suggestion_urgence === "haute")) || (new Date(b.last_in_at) - new Date(a.last_in_at)));
-  return { late, fresh, old };
-}
-
-function pendingSection(list, emptyTitle){
-  const { late, fresh, old } = splitByAge(list);
-  let h = "";
-  if (!late.length && !fresh.length) h += `<div class="empty"><b>${emptyTitle}</b>Aucun client n'attend en ce moment.</div>`;
-  if (late.length) h += `<h2><span class="pill late">${late.length}</span> Attendent depuis plus de 2 h</h2><div class="list">${late.map(pendingCard).join("")}</div>`;
-  if (fresh.length) h += `<h2>Moins de 2 h</h2><div class="list">${fresh.map(pendingCard).join("")}</div>`;
-  if (old.length) h += `<details class="old"><summary>${old.length} conversation${old.length>1?"s":""} sans réponse depuis plus de ${OLD_DAYS} jours</summary><div class="list">${old.map(pendingCard).join("")}</div></details>`;
-  return { html: h, active: late.length + fresh.length, late: late.length };
-}
-
-function renderRepondre(){
-  const raw = data.pending || [];
-  const urgent = data.urgent || [];
-  const urgentIds = new Set(urgent.map(c => c.wa_id));
-  const rest = raw.filter(c => !urgentIds.has(c.wa_id));
-  const full = buildRepondre(raw);
-  const shown = (aiFilter.repondre || "all") === "all" ? buildRepondre(rest) : buildRepondre(applyAi(rest, "repondre"));
-  $("#tab-repondre").innerHTML = urgentSection(urgent) + aiBar(raw, "repondre") + shown.h;
-  const extra = urgent.filter(c => c.kind === "out").length;
-  $("#cRep").textContent = full.counter.active + extra;
-  $("#cRep").className = "count" + (full.counter.late || urgent.length ? " hot" : (full.counter.active ? " warm" : ""));
-}
-
-function buildRepondre(all){
-  let h = "";
-  if (all.length && !all.some(c => c.suggestion)) h += `<div class="banner show soft">Bientôt : sous chaque message, Claude préparera une réponse à copier et la liste de ce qu'il manque pour faire le devis.</div>`;
-  let counter;
-  if (isB2C()){
-    const s = pendingSection(all, "Tout le monde a eu sa réponse");
-    h += `<h2>Mes conversations</h2>` + s.html; counter = s;
-  } else {
-    const mine = all.filter(c => (c.assigned_to || "lamyaa") === "lamyaa");
-    const b2c = all.filter(c => c.assigned_to === "nourredine");
-    const b = splitByAge(b2c);
-    const oldest = b2c.filter(c => mins(c.last_in_at) < OLD_DAYS*1440).sort((x,y) => new Date(x.last_in_at) - new Date(y.last_in_at))[0];
-    const activeB2C = b.late.length + b.fresh.length;
-    h += `<div class="b2cbar ${b.late.length ? "hot" : ""}"><b>B2C · Nourredine</b> : ${activeB2C ? `${activeB2C} en attente${oldest ? `, la plus ancienne depuis ${dur(mins(oldest.last_in_at))}` : ""}${b.late.length ? ` · <span class="pill late">${b.late.length} depuis plus de 2 h</span>` : ""}` : "aucune conversation en attente"}</div>`;
-    const s = pendingSection(mine, "Tout le monde a eu sa réponse");
-    h += `<h2>${me().role === "admin" ? "Chez Lamyaa (B2B)" : "Mes conversations (B2B)"}</h2>` + s.html;
-    if (b2c.length) h += `<details class="old"><summary>Voir les ${b2c.length} conversation${b2c.length>1?"s":""} en attente chez Nourredine (B2C)</summary><div class="list">${b2c.map(pendingCard).join("")}</div></details>`;
-    counter = me().role === "admin" ? { active: s.active + activeB2C, late: s.late + b.late.length } : s;
+  const IN_LABEL = { prix:"Attend notre prix", devis:"Attend notre devis", maquette:"Attend la maquette", info:"Attend une info", commande:"Attend des nouvelles de sa commande" };
+  const OUT_LABEL = { question:"Question sans réponse depuis ", prix:"Prix envoyé il y a ", devis:"Devis envoyé il y a ", maquette:"Maquette à valider depuis ", paiement:"Paiement attendu depuis " };
+  function why(c){
+    const m = dur(mins(c.ref_ts));
+    if (c.side === "top"){
+      if (c.promesse) return ["Promis : on doit revenir vers lui", "delay"];
+      if (c.rang === 1) return ["Relance", ""];
+      if (c.rang === 2 && c.delai) return ["Délai : " + c.delai, "delay"];
+      return [(IN_LABEL[c.attend] || "Attend notre réponse") + " depuis " + m, "wait"];
+    }
+    const t = (OUT_LABEL[c.attend] || "Sans réponse depuis ") + m;
+    return c.delai ? ["Délai : " + c.delai + " · " + t, "delay"] : [t, "low"];
   }
-  return { h, counter };
-}
 
-function renderRelancer(){
-  const all = data.relances || [];
-  const list = applyAi(all, "relancer");
-  let h = aiBar(all, "relancer") + `<h2>Devis sans réponse depuis plus de 2 jours</h2>`;
-  h += list.length ? `<div class="list">${list.map(relanceCard).join("")}</div>`
-    : `<div class="empty"><b>Aucune relance à faire</b>Les devis restés sans réponse depuis plus de 2 jours apparaîtront ici chaque matin.</div>`;
-  h += `<p class="note">Une conversation apparaît ici quand nous avons écrit en dernier, avec un devis (statut « Devis envoyé », document envoyé, ou prix dans le message), et que le client ne répond plus depuis 2 jours. Dès qu'un message de relance est envoyé, elle disparaît pour 2 jours.</p>`;
-  $("#tab-relancer").innerHTML = h;
-  $("#cRel").textContent = all.length;
-  $("#cRel").className = "count" + (all.length ? " warm" : "");
-}
-
-function kpi(v, l, s, cls=""){ return `<div class="kpi ${cls}"><div class="v">${v}</div><div class="l">${l}</div>${s?`<div class="s">${s}</div>`:""}</div>`; }
-function pct(a,b){ return b ? Math.round(100*a/b) + " %" : "—"; }
-function block(title, s){
-  const delay = s.delai_median_min == null ? "—" : dur(s.delai_median_min);
-  const rate2h = s.demandes ? s.repondues_2h / s.demandes : null;
-  return `<h2>${title}</h2><div class="kpis">
-    ${kpi(s.demandes, "Demandes reçues", `${s.nouveaux_contacts} nouveau${s.nouveaux_contacts>1?"x":""} contact${s.nouveaux_contacts>1?"s":""}`)}
-    ${kpi(pct(s.repondues_2h, s.demandes), "Répondues en moins de 2 h", `${s.repondues_2h} sur ${s.demandes}`, rate2h==null?"":(rate2h>=.8?"good":(rate2h<.5?"bad":"")))}
-    ${kpi(delay, "Délai de réponse médian", "nuits comprises")}
-    ${kpi(`${s.gagnes} / ${s.perdus}`, "Ventes gagnées / perdues", "marquées dans cette page")}
-  </div>`;
-}
-function nowBlock(s){
-  return `<h2>Maintenant</h2><div class="kpis">
-    ${kpi(s.en_attente, "Clients en attente", "dernier mois", s.en_attente?"":"good")}
-    ${kpi(s.en_attente_2h, "Attendent depuis plus de 2 h", "", s.en_attente_2h?"bad":"good")}
-    ${kpi(s.a_relancer, "Devis à relancer", "sans réponse depuis 2 jours")}
-    ${kpi(s.devis_en_cours, "Devis en cours", "marqués « devis envoyé »")}
-  </div>`;
-}
-function personRow(label, s){
-  if (!s) return "";
-  return `<tr><td><b>${label}</b></td><td>${s.demandes}</td><td>${pct(s.repondues_2h, s.demandes)}</td><td>${s.delai_median_min == null ? "—" : dur(s.delai_median_min)}</td><td>${s.en_attente}${s.en_attente_2h ? ` <span class="pill late">${s.en_attente_2h} &gt; 2 h</span>` : ""}</td><td>${s.a_relancer}</td><td>${s.classees ?? 0}</td></tr>`;
-}
-function renderRecap(){
-  const st = data.stats || {};
-  let h = "";
-  if (st.today) h += nowBlock(st.today);
-  if (!isB2C() && (st.lamyaa || st.nourredine)){
-    h += `<h2>Aujourd'hui, par personne</h2><div class="tablewrap"><table class="people"><thead><tr><th></th><th>Demandes</th><th>&lt; 2 h</th><th>Délai médian</th><th>En attente</th><th>À relancer</th><th>Classées sans réponse</th></tr></thead><tbody>
-      ${personRow("Lamyaa (B2B)", st.lamyaa)}${personRow("Nourredine (B2C)", st.nourredine)}</tbody></table></div>`;
+  function threadHtml(id){
+    const t = threads.get(id);
+    if (!t) return '<div class="thread"><div class="note">Chargement…</div></div>';
+    if (t === "err") return '<div class="thread"><div class="note">Impossible de charger la discussion.</div></div>';
+    if (!t.length) return '<div class="thread"><div class="note">Aucun message.</div></div>';
+    return '<div class="thread" data-th="' + esc(id) + '">' + t.map(x =>
+      '<div class="bub ' + (x.direction === "out" ? "out" : "in") + '">' + esc(x.body || "[" + x.type + "]") + '<time>' + (x.direction === "out" ? "Nous · " : "Client · ") + esc(clock(x.ts)) + '</time></div>').join("") + '</div>';
   }
-  if (st.today) h += block("Aujourd'hui (24 dernières heures)", st.today);
-  if (st.week) h += block("7 derniers jours", st.week);
-  if (!isB2C()){
-    const d = data.dismissed || [];
-    h += `<h2>Classées « pas besoin de répondre » (24 h)</h2>`;
-    h += d.length ? `<div class="list">${d.map(x => `<div class="card mini ${looksLikeQuestion(x.last_text) ? "late" : ""}"><div class="row"><div class="who"><div class="name">${esc(PEOPLE[x.who] || (x.who === "dan" ? "Dan" : x.who))} <span class="pill">${esc(REASONS[x.detail] || x.detail)}</span> <span class="num">${esc(fmtNum(x.wa_id))} · ${esc(hm(x.at))}</span>${looksLikeQuestion(x.last_text) ? ` <span class="pill late">question ?</span>` : ""}</div><div class="msg">${esc(x.last_text || "")}</div></div></div></div>`).join("")}</div>`
-      : `<div class="empty"><b>Rien de classé</b>Aucune conversation retirée sans réponse sur les dernières 24 h.</div>`;
+
+  function rowHtml(c){
+    const id = esc(c.wa_id), num = fmtNum(c.wa_id);
+    const ours = c.side === "low" || c.promesse;
+    const msg = ours ? '<i>Notre dernier message :</i> ' + esc(c.last_text || "") : esc(c.last_text || "");
+    const since = c.side === "top" ? "reçu à " : "envoyé à ";
+    const [w, cls] = why(c);
+    const role = me().role;
+    const owner = role === "admin" && c.assigned_to === "nourredine" ? '<span class="owner">Nourredine</span>' : "";
+    const other = c.assigned_to === "nourredine" ? "lamyaa" : "nourredine";
+    const give = role !== "b2c" ? '<button class="b give" data-act="give" data-to="' + other + '" data-id="' + id + '" title="Confier cette conversation à ' + PEOPLE[other] + '">→ ' + PEOPLE[other] + '</button>' : "";
+    return '<article class="row ' + c.side + '">' +
+      '<div class="av" aria-hidden="true">' + esc(initials(c.name, c.wa_id)) + '</div>' +
+      '<div class="name">' + esc(c.name || num) + (c.name ? '<small>' + esc(num) + '</small>' : "") + owner + '</div>' +
+      '<div class="age" data-since="' + esc(c.ref_ts) + '">' + dur(mins(c.ref_ts)) + '<small>' + since + esc(when(c.ref_ts)) + '</small></div>' +
+      '<div class="msg">' + msg + '</div>' +
+      '<div class="foot"><span class="why ' + cls + '">' + esc(w) + '</span></div>' +
+      '<div class="acts">' +
+        '<button class="b wa" data-act="copy" data-id="' + id + '">Copier le n°</button>' +
+        '<button class="b" data-act="thread" data-id="' + id + '">' + (open.has(c.wa_id) ? "Masquer" : "Voir") + ' la discussion</button>' +
+        '<span class="sp"></span>' +
+        '<button class="b win" data-act="win" data-id="' + id + '">Gagné</button>' +
+        '<button class="b lose" data-act="lose" data-id="' + id + '">Perdu</button>' +
+        '<button class="b ok" data-act="ok" data-id="' + id + '">C\'est réglé</button>' +
+        '<button class="b later" data-act="later" data-id="' + id + '">Plus tard</button>' +
+        give +
+      '</div>' +
+      (open.has(c.wa_id) ? threadHtml(c.wa_id) : "") +
+      '</article>';
   }
-  h += `<p class="note">Bientôt : ce récap vous sera envoyé chaque soir sur WhatsApp.</p>`;
-  $("#tab-recap").innerHTML = h;
-}
 
-function renderMeta(){
-  const last = data.last_event_at;
-  $("#meta").innerHTML = `<b>${esc(me().name)}</b>${isB2C() ? " · B2C" : (me().role === "resp" ? " · B2B" : "")} · mis à jour à <b>${hm(data.now)}</b>` + (last ? `<br>Dernier message reçu ${mins(last) < 1 ? "à l'instant" : "il y a " + esc(dur(mins(last)))}` : "");
-  const hb = $("#healthBanner");
-  const h = new Date().getHours(), wd = new Date().getDay();
-  if (!DEMO && last && mins(last) > 24*60 && wd >= 1 && wd <= 6 && h >= 11){
-    hb.textContent = "Aucun message reçu depuis plus de 24 h. Si c'est inhabituel, la connexion WhatsApp est peut-être coupée (téléphone non ouvert depuis 14 jours ?). Prévenez Dan.";
-    hb.classList.add("show");
-  } else if (!DEMO && !last){
-    hb.textContent = "Aucun message reçu pour l'instant : le numéro n'est peut-être pas encore branché.";
-    hb.classList.add("show");
-  } else hb.classList.remove("show");
-}
-
-function render(){
-  if (!data) return;
-  renderMeta(); renderRepondre(); renderRelancer(); renderRecap();
-  for (const id of openThreads) loadThread(id, false);
-}
-
-async function loadThread(id, toggle = true){
-  const els = document.querySelectorAll(`[id="th-${CSS.escape(id)}"]`);
-  if (!els.length) return;
-  if (toggle){
-    if (openThreads.has(id)){ openThreads.delete(id); render(); return; }
-    openThreads.add(id); els.forEach(el => el.classList.remove("hidden"));
-  }
-  els.forEach(el => el.innerHTML = `<div class="note">Chargement…</div>`);
-  try{
-    const msgs = (await api("messages", { wa_id:id })).slice().reverse();
-    const html = msgs.map(m => `<div class="bubble ${m.direction}">${esc(m.body)}<time>${esc(clock(m.ts))}</time></div>`).join("") || `<div class="note">Aucun message.</div>`;
-    document.querySelectorAll(`[id="th-${CSS.escape(id)}"]`).forEach(el => { el.innerHTML = html; el.scrollTop = el.scrollHeight; });
-    if (toggle) render();
-  }catch(e){ els.forEach(el => el.innerHTML = `<div class="note">Impossible de charger la conversation.</div>`); }
-}
-
-/* ---------- actions ---------- */
-async function copyText(t, okMsg){
-  try{ await navigator.clipboard.writeText(t); }
-  catch{ const ta = document.createElement("textarea"); ta.value = t; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove(); }
-  toast(okMsg, 4500);
-}
-
-document.addEventListener("click", async ev => {
-  const b = ev.target.closest("button");
-  if (!b) return;
-  if (b.dataset.tab){ setTab(b.dataset.tab); return; }
-  if (b.dataset.aifilter){ aiFilter[b.dataset.aitab] = b.dataset.aifilter; store.set("aifilter", aiFilter); render(); return; }
-  if (b.dataset.thread){ loadThread(b.dataset.thread); return; }
-  if (b.dataset.copynum){ copyText("+" + digits(b.dataset.copynum), "Numéro copié. Dans WhatsApp Web : Ctrl+Alt+/ puis Ctrl+V, et Entrée."); return; }
-  if (b.dataset.copy){ const ta = document.querySelector(`textarea[data-sugg="${CSS.escape(b.dataset.copy)}"]`); copyText(ta.value, "Réponse copiée. Collez-la dans WhatsApp."); return; }
-  if (b.dataset.copyrel){ const ta = document.querySelector(`textarea[data-rel="${CSS.escape(b.dataset.copyrel)}"]`); copyText(ta.value, "Relance copiée. Collez-la dans WhatsApp."); return; }
-  if (b.dataset.dismiss){ dismissOpen = dismissOpen === b.dataset.dismiss ? null : b.dataset.dismiss; render(); return; }
-  if (b.dataset.cancel){ dismissOpen = null; render(); return; }
-
-  let action = null, extra = {}, msg = "";
-  if (b.dataset.reason){ action = "dismiss"; extra = { wa_id:b.dataset.id2, reason:b.dataset.reason }; msg = "Retiré de la liste (" + REASONS[b.dataset.reason] + ")."; }
-  else if (b.dataset.snooze){ action = "snooze"; extra = { wa_id:b.dataset.snooze, days:3 }; msg = "On vous la remontre dans 3 jours."; }
-  else if (b.dataset.assign){ action = "assign"; extra = { wa_id:b.dataset.id2, to:b.dataset.assign }; msg = b.dataset.assign === "nourredine" ? "Confiée à Nourredine (B2C)." : "Conversation reprise par Lamyaa."; }
-  else if (b.dataset.status){ action = "status"; extra = { wa_id:b.dataset.id2, status:b.dataset.status }; msg = { devis_envoye:"Noté : devis envoyé.", gagne:"Bravo ! Marqué gagné.", perdu:"Marqué perdu.", perso:"Conversation perso : elle ne sera plus suivie." }[b.dataset.status]; }
-  if (!action) return;
-  b.disabled = true;
-  try{ await api(action, extra); dismissOpen = null; toast(msg); await refresh(); }
-  catch(e){ toast("Erreur, réessayez."); b.disabled = false; }
-});
-
-function setTab(t){
-  activeTab = t; store.set("tab", t);
-  document.querySelectorAll(".tab").forEach(x => x.classList.toggle("active", x.dataset.tab === t));
-  ["repondre","relancer","recap","reglages"].forEach(x => $("#tab-"+x).classList.toggle("hidden", x !== t));
-}
-
-/* ---------- alertes ---------- */
-let audioCtx = null;
-const settings = () => ({ hours: store.get("hours", [10,12,15,17]), alert2h: store.get("alert2h", true), sound: store.get("sound", true) });
-function beep(){
-  if (!settings().sound) return;
-  try{
-    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-    const t = audioCtx.currentTime;
-    [0, .18].forEach((d,i) => { const o = audioCtx.createOscillator(), g = audioCtx.createGain(); o.frequency.value = i ? 880 : 660; g.gain.setValueAtTime(.0001, t+d); g.gain.exponentialRampToValueAtTime(.25, t+d+.02); g.gain.exponentialRampToValueAtTime(.0001, t+d+.16); o.connect(g).connect(audioCtx.destination); o.start(t+d); o.stop(t+d+.18); });
-  }catch{}
-}
-function notify(title, body){
-  beep();
-  if ("Notification" in window && Notification.permission === "granted"){
-    const n = new Notification(title, { body, tag:"batwa", renotify:true, requireInteraction:true });
-    n.onclick = () => { window.focus(); setTab("repondre"); n.close(); };
-  }
-}
-function checkAlerts(){
-  if (!data) return;
-  const s = settings(), now = new Date();
-  const active = (data.pending || []).filter(c => mins(c.last_in_at) < OLD_DAYS*1440);
-  const mine = isB2C() ? active : active.filter(c => me().role === "admin" || (c.assigned_to || "lamyaa") === "lamyaa");
-  const late = active.filter(c => mins(c.last_in_at) >= LATE_MIN);
-  document.title = (mine.length ? "(" + mine.length + ") " : "") + "Suivi WhatsApp · Bar à Textile";
-
-  // Alerte immédiate : un client vient de dépasser 2 h (pour la responsable : aussi ceux du B2C)
-  if (s.alert2h){
-    const seen = new Set(store.get("seen2h", []));
-    const fresh = late.filter(c => !seen.has(c.wa_id + "|" + c.last_in_at));
-    if (fresh.length){
-      const label = c => (c.name || fmtNum(c.wa_id)) + (!isB2C() && c.assigned_to === "nourredine" ? " (B2C)" : "");
-      notify(`${fresh.length} client${fresh.length>1?"s attendent":" attend"} depuis plus de 2 h`, fresh.map(label).slice(0,4).join(", "));
-      late.forEach(c => seen.add(c.wa_id + "|" + c.last_in_at));
-      store.set("seen2h", [...seen].slice(-300));
+  function render(){
+    if (!data) return;
+    const role = me().role;
+    const items = (data.items || []).filter(c => !gone.has(c.wa_id))
+      .filter(c => role !== "resp" || c.assigned_to !== "nourredine");
+    const byAge = (a, b) => new Date(a.ref_ts) - new Date(b.ref_ts);
+    const top = items.filter(c => c.side === "top").sort((a, b) => a.rang - b.rang || byAge(a, b));
+    const low = items.filter(c => c.side === "low").sort((a, b) => a.rang - b.rang || byAge(a, b));
+    const sc = window.scrollY;
+    $("#top").innerHTML = top.length ? top.map(rowHtml).join("") : '<div class="empty">Tout le monde a eu sa réponse.</div>';
+    $("#low").innerHTML = low.length ? low.map(rowHtml).join("") : '<div class="empty">Personne à relancer.</div>';
+    window.scrollTo(0, sc);
+    $("#cTop").textContent = top.length; $("#cLow").textContent = low.length;
+    $("#count").textContent = top.length + low.length;
+    const who = role === "admin" ? "Dan · toute l'équipe" : role === "resp" ? "Lamyaa" : "Nourredine";
+    $("#sub").textContent = who + " · mis à jour à " + new Date(lastOk || Date.now()).toLocaleTimeString("fr-FR", { hour:"2-digit", minute:"2-digit" });
+    document.title = (top.length ? "(" + top.length + ") " : "") + "À traiter · Bar à Textile";
+    const k = $("#kpi");
+    k.classList.toggle("hidden", role !== "admin");
+    $("#oldLink").classList.toggle("hidden", role !== "admin");
+    if (role === "admin"){
+      const late = top.filter(c => mins(c.ref_ts) >= 1440).length;
+      const s7 = data.stats?.semaine || {}, s1 = data.stats?.jour || {};
+      const med = s7.delai_median_min;
+      k.innerHTML = '<div class="' + (late ? "bad" : "good") + '"><b>' + late + '</b><span>client(s) sans réponse depuis plus de 24 h · objectif 0</span></div>' +
+        '<div><b>' + (med == null ? "–" : dur(med)) + '</b><span>délai médian de réponse (7 jours)</span></div>' +
+        '<div><b>' + (s1.demandes ?? "–") + '</b><span>demandes reçues (24 h)</span></div>';
     }
   }
-  // Rappel aux heures fixes (ses propres conversations)
-  const key = now.toDateString() + "-" + now.getHours();
-  if (s.hours.includes(now.getHours()) && now.getMinutes() < 15 && store.get("lastHourly","") !== key){
-    store.set("lastHourly", key);
-    if (mine.length) notify(`${mine.length} conversation${mine.length>1?"s":""} en attente de réponse`, mine.slice(0,5).map(c => (c.name || fmtNum(c.wa_id)) + " · " + dur(mins(c.last_in_at))).join("\n"));
-    const rel = (data.relances || []).length;
-    if (now.getHours() === Math.min(...s.hours) && rel) setTimeout(() => notify(`${rel} devis à relancer aujourd'hui`, "Ouvrez l'onglet « À relancer »."), 4000);
+
+  async function refresh(){
+    try{
+      data = await call(API_LIST, { action:"load" });
+      lastOk = Date.now(); gone.clear();
+      $("#banner").classList.add("hidden");
+      render();
+    }catch(e){
+      if (e.code === 401){ store.del("code"); showLogin("Code incorrect."); return; }
+      $("#banner").textContent = "Impossible de mettre à jour la liste (" + e.message + "). Nouvel essai dans 1 minute.";
+      $("#banner").classList.remove("hidden");
+    }
   }
-}
-function updateAlertBtn(){
-  const on = "Notification" in window && Notification.permission === "granted";
-  $("#alertBtn").classList.toggle("on", on);
-  $("#alertBtn").textContent = on ? "🔔 Alertes activées" : "🔔 Activer les alertes";
-}
-$("#alertBtn").addEventListener("click", async () => {
-  try{ audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)(); await audioCtx.resume(); }catch{}
-  if ("Notification" in window && Notification.permission !== "granted") await Notification.requestPermission();
-  updateAlertBtn();
-  if (Notification.permission === "granted"){ toast("Alertes activées."); beep(); }
-  else toast("Les notifications sont bloquées par le navigateur.");
-});
 
-/* ---------- réglages ---------- */
-function fillSettings(){
-  const s = settings();
-  $("#hoursInput").value = s.hours.join(", ");
-  $("#alert2h").checked = s.alert2h; $("#soundOn").checked = s.sound;
-}
-$("#saveSettings").addEventListener("click", () => {
-  const hrs = $("#hoursInput").value.split(/[,; ]+/).map(Number).filter(n => Number.isInteger(n) && n >= 0 && n <= 23);
-  store.set("hours", hrs.length ? [...new Set(hrs)].sort((a,b)=>a-b) : [10,12,15,17]);
-  store.set("alert2h", $("#alert2h").checked); store.set("sound", $("#soundOn").checked);
-  fillSettings(); toast("Réglages enregistrés.");
-});
-$("#testAlert").addEventListener("click", () => notify("Test d'alerte", "Les alertes fonctionnent sur cet ordinateur."));
-$("#logout").addEventListener("click", () => { store.del("code"); location.reload(); });
+  async function loadThread(id){
+    try{
+      const msgs = await call(API_APP, { action:"messages", wa_id:id });
+      threads.set(id, (msgs || []).slice().reverse());
+    }catch(e){ threads.set(id, "err"); }
+    render();
+    const el = document.querySelector('[data-th="' + CSS.escape(id) + '"]');
+    if (el) el.scrollTop = el.scrollHeight;
+  }
 
-/* ---------- connexion ---------- */
-function showLogin(err = ""){
-  $("#app").classList.add("hidden"); $("#login").classList.remove("hidden");
-  $("#loginErr").textContent = err; $("#codeInput").focus();
-}
-$("#loginForm").addEventListener("submit", async ev => {
-  ev.preventDefault();
-  code = $("#codeInput").value.trim();
-  try{ data = await api("load"); store.set("code", code); start(); }
-  catch(e){ $("#loginErr").textContent = e.code === 401 ? "Code incorrect." : "Connexion impossible, réessayez."; }
-});
+  async function copy(t){
+    try{ await navigator.clipboard.writeText(t); }
+    catch(e){ const ta = document.createElement("textarea"); ta.value = t; document.body.appendChild(ta); ta.select(); try{ document.execCommand("copy"); }catch(er){} ta.remove(); }
+    toast("Numéro copié. Dans WhatsApp Web : Ctrl+Alt+/ puis Ctrl+V.");
+  }
 
-function start(){
-  $("#login").classList.add("hidden"); $("#app").classList.remove("hidden");
-  $("#demoBanner").classList.toggle("show", DEMO);
-  if (DEMO) $("#demoBanner").innerHTML = isB2C()
-    ? "Mode démonstration : conversations fictives, rien n’est enregistré. Vue de <b>Nourredine (B2C)</b> : il ne voit que ce que Lamyaa lui a confié."
-    : "Mode démonstration : conversations fictives, rien n’est enregistré. Vue de <b>Lamyaa</b> ; ajoutez <b>&amp;as=nourredine</b> à l’adresse pour voir la vue B2C.";
-  fillSettings(); updateAlertBtn(); setTab(activeTab);
-  if (data){ render(); checkAlerts(); } else refresh();
-  clearInterval(start._r); start._r = setInterval(refresh, REFRESH_MS);
-  clearInterval(start._t); start._t = setInterval(() => {
-    document.querySelectorAll(".timer[data-since]").forEach(el => { el.firstChild.textContent = dur(mins(el.dataset.since)); });
+  document.addEventListener("click", async e => {
+    const b = e.target.closest("[data-act]");
+    if (!b) return;
+    const id = b.dataset.id, act = b.dataset.act;
+    if (act === "copy"){ copy("+" + digits(id)); return; }
+    if (act === "thread"){
+      if (open.has(id)){ open.delete(id); render(); return; }
+      open.add(id); threads.delete(id); render(); loadThread(id); return;
+    }
+    const msgs = {
+      ok:["Retirée de la liste. Elle revient si le client écrit.", () => call(API_APP, { action:"dismiss", wa_id:id, reason:"autre" })],
+      later:["Masquée jusqu'à demain 9 h (revient avant si le client écrit).", () => call(API_LIST, { action:"later", wa_id:id })],
+      win:["Bravo ! Marquée gagnée.", () => call(API_APP, { action:"status", wa_id:id, status:"gagne" })],
+      lose:["Marquée perdue.", () => call(API_APP, { action:"status", wa_id:id, status:"perdu" })],
+      give:["Confiée à " + (PEOPLE[b.dataset.to] || ""), () => call(API_APP, { action:"assign", wa_id:id, to:b.dataset.to })]
+    }[act];
+    if (!msgs) return;
+    b.disabled = true;
+    try{
+      await msgs[1]();
+      if (act === "give" && me().role === "admin"){
+        const c = (data.items || []).find(x => x.wa_id === id); if (c) c.assigned_to = b.dataset.to;
+      } else gone.add(id);
+      open.delete(id); render(); toast(msgs[0]);
+    }catch(er){
+      b.disabled = false;
+      if (er.code === 401){ store.del("code"); showLogin("Code incorrect."); return; }
+      toast("Ça n'a pas marché, réessayez.");
+    }
+  });
+
+  setInterval(() => {
+    document.querySelectorAll(".age[data-since]").forEach(el => { el.firstChild.textContent = dur(mins(el.dataset.since)); });
   }, 30000);
-}
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && code && Date.now() - (lastOk || 0) > 20000) refresh(); });
 
-/* ---------- démonstration ---------- */
-function demoData(){
-  const ago = m => new Date(Date.now() - m*60000).toISOString();
-  const as = QS.get("as") || "lamyaa";
-  const meDemo = as === "nourredine" ? { user:"nourredine", name:"Nourredine", role:"b2c" } : (as === "dan" ? { user:"dan", name:"Dan", role:"admin" } : { user:"lamyaa", name:"Lamyaa", role:"resp" });
-  const pending = [
-    { wa_id:"212661000111", name:"Karim — Atlas Sport", last_in_at:ago(205), last_text:"Bonjour, c'est pour 120 maillots floqués pour notre tournoi du 15 novembre. Vous pouvez faire ?", ref_bt:"BT-7K2M9", status:"en_cours", assigned_to:"lamyaa", suggestion:"Bonjour Karim, oui c'est faisable pour le 15 novembre. Pour vous faire le devis, pouvez-vous me préciser la répartition des tailles, la couleur des maillots et m'envoyer votre logo (PDF ou PNG) ? Je vous envoie le prix dans la foulée.", missing_info:["Tailles","Couleur","Logo"] },
-    { wa_id:"212700223344", name:"Salma Bennani", last_in_at:ago(140), last_text:"Et pour la broderie sur la poitrine c'est combien en plus ?", ref_bt:null, status:"devis_envoye", assigned_to:"nourredine", suggestion:null, missing_info:null },
-    { wa_id:"212655887766", name:"", last_in_at:ago(38), last_text:"[image] Comme ce modèle mais en bleu marine", ref_bt:"BT-Q4X8P", status:"en_cours", assigned_to:"nourredine", suggestion:null, missing_info:null },
-    { wa_id:"212612345678", name:"Youssef (OCP)", last_in_at:ago(6), last_text:"Bonjour, je souhaite un devis pour 300 tote bags avec impression 1 couleur.", ref_bt:null, status:"en_cours", assigned_to:"lamyaa", suggestion:null, missing_info:null },
-    { wa_id:"212698765432", name:"Hôtel Riad Salam", last_in_at:ago(60*24*9), last_text:"Ok merci, je reviens vers vous", ref_bt:null, status:"en_cours", assigned_to:"lamyaa", suggestion:null, missing_info:null }
-  ];
-  const relances = [
-    { wa_id:"212644556677", name:"Nadia El Amrani", last_out_at:ago(60*24*3+120), last_text:"[document] Devis BAT-2026-118 — 200 polos brodés", ref_bt:"BT-H3N7D", status:"devis_envoye", assigned_to:"lamyaa" },
-    { wa_id:"212633221100", name:"Mehdi Agence Pixel", last_out_at:ago(60*24*5), last_text:"Pour 80 hoodies avec impression dos + cœur ce serait 145 dh pièce HT.", ref_bt:null, status:"en_cours", assigned_to:"nourredine" }
-  ];
-  const mineOnly = l => meDemo.role === "b2c" ? l.filter(c => c.assigned_to === "nourredine") : l;
-  return {
-    now: new Date().toISOString(), last_event_at: ago(4), me: meDemo,
-    pending: mineOnly(pending), relances: mineOnly(relances),
-    stats: {
-      today: { jours:1, demandes:14, nouveaux_contacts:5, repondues:12, repondues_2h:9, delai_median_min:34, en_attente:4, en_attente_2h:2, a_relancer:2, devis_en_cours:6, gagnes:1, perdus:0, classees:3 },
-      week: { jours:7, demandes:83, nouveaux_contacts:27, repondues:79, repondues_2h:58, delai_median_min:52, en_attente:4, en_attente_2h:2, a_relancer:2, devis_en_cours:6, gagnes:5, perdus:2, classees:11 },
-      ...(meDemo.role === "b2c" ? {} : {
-        lamyaa: { demandes:9, repondues_2h:6, delai_median_min:41, en_attente:2, en_attente_2h:1, a_relancer:1, classees:1 },
-        nourredine: { demandes:5, repondues_2h:3, delai_median_min:28, en_attente:2, en_attente_2h:1, a_relancer:1, classees:2 }
-      })
-    },
-    dismissed: meDemo.role === "b2c" ? [] : [
-      { at:ago(50), who:"nourredine", wa_id:"212611223344", detail:"merci_ok", last_text:"Merci beaucoup, bonne journée" },
-      { at:ago(95), who:"nourredine", wa_id:"212699887766", detail:"autre", last_text:"Vous livrez à Rabat ? Et c'est quoi le délai ?" },
-      { at:ago(180), who:"lamyaa", wa_id:"212677665544", detail:"telephone", last_text:"Je vous appelle tout à l'heure" }
-    ]
-  };
-}
-let demo = null;
-async function demoApi(action, extra){
-  demo = demo || demoData();
-  if (action === "load") return { ...demo, now: new Date().toISOString() };
-  if (action === "messages"){
-    const c = [...demo.pending, ...demo.relances].find(x => x.wa_id === extra.wa_id) || {};
-    const t = c.last_in_at || c.last_out_at || new Date().toISOString();
-    const b = new Date(t).getTime();
-    return [
-      { direction: c.last_in_at ? "in" : "out", ts: t, body: c.last_text },
-      { direction:"out", ts:new Date(b-3600e3).toISOString(), body:"Bonjour ! Bien sûr, dites-moi tout : quantité, modèle et date souhaitée ?" },
-      { direction:"in", ts:new Date(b-4000e3).toISOString(), body:"Bonjour, je vous contacte depuis votre site." }
-    ];
+  function showLogin(err){
+    $("#app").classList.add("hidden"); $("#login").classList.remove("hidden");
+    $("#loginErr").textContent = err || ""; $("#codeInput").focus();
   }
-  if (action === "assign"){ const c = [...demo.pending, ...demo.relances].find(x => x.wa_id === extra.wa_id); if (c) c.assigned_to = extra.to; }
-  if (action === "dismiss"){ demo.pending = demo.pending.filter(x => x.wa_id !== extra.wa_id); }
-  return { ok:true };
-}
+  function start(){
+    $("#login").classList.add("hidden"); $("#app").classList.remove("hidden");
+    render();
+    clearInterval(start.r); start.r = setInterval(refresh, REFRESH_MS);
+  }
+  $("#loginForm").addEventListener("submit", async ev => {
+    ev.preventDefault();
+    code = $("#codeInput").value.trim();
+    try{ data = await call(API_LIST, { action:"load" }); lastOk = Date.now(); store.set("code", code); start(); }
+    catch(e){ $("#loginErr").textContent = e.code === 401 ? "Code incorrect." : "Connexion impossible, réessayez."; }
+  });
+  $("#logout").addEventListener("click", () => { store.del("code"); location.reload(); });
+  $("#oldLink").addEventListener("click", () => { location.href = "ancienne-version.html"; });
 
-/* ---------- démarrage ---------- */
-if (DEMO || code) start(); else showLogin();
+  if (code){ start(); refresh(); } else showLogin();
 })();
 </script>
 </body>
