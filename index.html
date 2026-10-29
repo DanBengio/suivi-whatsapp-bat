@@ -224,6 +224,7 @@ table.people tr:last-child td{border-bottom:0}
 <script>
 (() => {
 const API = "https://prfzjiruivbhaqvnrczk.supabase.co/functions/v1/whatsapp-app";
+const API_URGENT = "https://prfzjiruivbhaqvnrczk.supabase.co/functions/v1/whatsapp-urgent";
 const LATE_MIN = 120, SOON_MIN = 60, OLD_DAYS = 3, REFRESH_MS = 60000;
 const QS = new URLSearchParams(location.search);
 const DEMO = QS.has("demo");
@@ -272,7 +273,9 @@ async function api(action, extra = {}){
 
 async function refresh(){
   try{
-    data = await api("load");
+    const urg = DEMO ? Promise.resolve({ urgent: [] }) : fetch(API_URGENT, { method:"POST", headers:{ "content-type":"application/json", "x-code": code }, body:"{}" }).then(r => r.ok ? r.json() : { urgent: [] }).catch(() => ({ urgent: [] }));
+    const [d, u] = await Promise.all([api("load"), urg]);
+    data = d; data.urgent = u.urgent || [];
     render();
     checkAlerts();
   }catch(e){
@@ -390,6 +393,40 @@ function pendingCard(c){
   </article>`;
 }
 
+function urgentOutCard(c){
+  const m = mins(c.last_out_at);
+  const num = fmtNum(c.wa_id);
+  return `<article class="card late" data-id="${esc(c.wa_id)}">
+    <div class="row">
+      <div class="avatar">${esc(initials(c.name, c.wa_id))}</div>
+      <div class="who">
+        <div class="name">${esc(c.name || num)} ${c.name ? `<span class="num">${esc(num)}</span>` : ""}
+          ${ownerPill(c)}
+          ${c.ref_bt ? `<span class="pill bt">${esc(c.ref_bt)}</span>` : ""}
+        </div>
+        <div class="msg"><span class="who-said">Notre dernier message :</span> ${esc(c.last_text || "")}</div>
+      </div>
+      <div class="timer">${dur(m)}<small>sans réponse du client</small></div>
+    </div>
+    <div class="verdict"><span class="pill ai act" title="Avis de Claude, à vérifier">Claude : B2B, question sans réponse</span><span>${esc(c.suggestion_raison || "")}</span></div>
+    <div class="actions">
+      ${contactButtons(c)}
+      <button class="btn" data-thread="${esc(c.wa_id)}">${openThreads.has(c.wa_id) ? "Masquer" : "Voir"} la conversation</button>
+      <button class="btn" data-snooze="${esc(c.wa_id)}">Plus tard (3 jours)</button>
+      <button class="btn win" data-status="gagne" data-id2="${esc(c.wa_id)}">Gagné</button>
+      <button class="btn lose" data-status="perdu" data-id2="${esc(c.wa_id)}">Perdu</button>
+      ${assignBtn(c)}
+    </div>
+    <div class="thread ${openThreads.has(c.wa_id) ? "" : "hidden"}" id="th-${esc(c.wa_id)}"></div>
+  </article>`;
+}
+
+function urgentSection(list){
+  if (!list.length) return "";
+  const cards = list.map(c => c.kind === "out" ? urgentOutCard(c) : pendingCard(c)).join("");
+  return `<h2><span class="pill late">${list.length}</span> Urgent selon Claude</h2><p class="note" style="margin-top:-4px">Clients qui relancent, et clients pros à qui on a posé une question restée sans réponse depuis plus de 4 h.</p><div class="list">${cards}</div>`;
+}
+
 function relanceCard(c){
   const m = mins(c.last_out_at);
   const num = fmtNum(c.wa_id);
@@ -443,11 +480,15 @@ function pendingSection(list, emptyTitle){
 
 function renderRepondre(){
   const raw = data.pending || [];
+  const urgent = data.urgent || [];
+  const urgentIds = new Set(urgent.map(c => c.wa_id));
+  const rest = raw.filter(c => !urgentIds.has(c.wa_id));
   const full = buildRepondre(raw);
-  const shown = (aiFilter.repondre || "all") === "all" ? full : buildRepondre(applyAi(raw, "repondre"));
-  $("#tab-repondre").innerHTML = aiBar(raw, "repondre") + shown.h;
-  $("#cRep").textContent = full.counter.active;
-  $("#cRep").className = "count" + (full.counter.late ? " hot" : (full.counter.active ? " warm" : ""));
+  const shown = (aiFilter.repondre || "all") === "all" ? buildRepondre(rest) : buildRepondre(applyAi(rest, "repondre"));
+  $("#tab-repondre").innerHTML = urgentSection(urgent) + aiBar(raw, "repondre") + shown.h;
+  const extra = urgent.filter(c => c.kind === "out").length;
+  $("#cRep").textContent = full.counter.active + extra;
+  $("#cRep").className = "count" + (full.counter.late || urgent.length ? " hot" : (full.counter.active ? " warm" : ""));
 }
 
 function buildRepondre(all){
